@@ -4,13 +4,21 @@ import matplotlib as mpl
 from matplotlib import rc
 import heapq
 
+R = 0.01
+M = 0.01
+
 class Event:
     
-    def __init__(self, i, j, event_type):
-        
-        self.i = i
-        self.j = j
-        self.event_type = event_type 
+    def __init__(self, time, i, j, event_type,insert_time):
+
+        self.time        = time
+        self.i           = i
+        self.j           = j
+        self.event_type  = event_type
+        self.insert_time = insert_time
+
+    def __lt__(self,other):
+        return self.time < other.time
 
 class Ensemble:
     """
@@ -32,15 +40,16 @@ class Ensemble:
             number of particles in ensemble
         
         """
+        self.radii = np.full(N,R)
+        self.particles = np.zeros((4,N), dtype = np.float64)
         
-        self.particles = np.zeros((4,N))
-        self.particles[:2,:] = np.random.random((2,N))
+        self.particles[:2,:] = self.radii + np.random.random((2,N)) * (1 - self.radii)
         
-        self.collided  = np.zeros(N, dtype = np.bool)
+        self.last_collision = np.zeros(N)
         self.N = N
         
         self.M = np.full(N,M)
-        self.radii = np.full(N,R)
+        
         self.xi = 1
         
         self.events = []
@@ -57,9 +66,15 @@ class Ensemble:
         
     def plot_positions(self,savefig = ""):
         
-        fig = plt.figure(figsize = (8,8))
-        
-        plt.scatter(self.particles[0,:],self.particles[1,:], color = "blue", s = 2)
+        fig, ax = plt.subplots(figsize = (8,8))
+
+        for i in range(self.N):
+            
+            ax.add_artist(plt.Circle((self.particles[0,i],
+                                    self.particles[1,i]),
+                                    self.radii[i],
+                                    linewidth=0,
+                                    color = "blue"))
         
         # boundary of box
         plt.hlines([0,1],[0,0],[1,1], ls = "--", color = "black")
@@ -71,6 +86,8 @@ class Ensemble:
         
         if savefig != "":
             plt.savefig(savefig)
+
+            plt.close()
     
     
     def wall_collision_time(self,i):
@@ -98,6 +115,11 @@ class Ensemble:
             delta_t = delta_t_v
         
         return delta_t , collision_type
+
+    def particle_collision_time(self,i):
+        raise NotImplementedError
+    def next_collision(self,i):
+        raise NotImplementedError
     
     def new_velocities(self,event):
         
@@ -111,30 +133,59 @@ class Ensemble:
         for i in range(self.N):
             collision = self.wall_collision_time(i)
             
-            heapq.heappush(self.events, (collision[0], Event(i,0,collision[1])) )
+            heapq.heappush(self.events, Event(collision[0],i,-1,collision[1],0))
+
+    def is_valid(self,event,t):
+
+        t_1 = self.last_collision[event.i]
+        t_2 = self.last_collision[event.j]
+        
+        return (event.event_type == "pair") and ((t_1 <= t) and (t_2 <= t)) or (event.event_type != "pair") and (t_1 <= t)
             
-    def simulate(self, T):
+    def simulate(self, T, save_snapshots = False):
         
-        t = 0
-        
+        t = 0.0
+        self.last_collision = np.zeros(self.N) # reset the time
         self.start_simulation()
-        
+
+
+        iter = 0
         while t < T:
-        
+
+            # popping the earliest event
             current = heapq.heappop(self.events)
-        
-            time = current[0]
-            event = current[1]
-            
-            self.particles[:2,:] += (time - t)* self.particles[2:,:] # move all particles
-            self.new_velocities(event)
-            
-            t = time
-            
-            new_collision = self.wall_collision_time(event.i)
-            heapq.heappush(self.events,
-                           (new_collision[0] + t, Event(event.i, 0, new_collision[1])))
-            
-            #self.plot_positions()
-            #plt.show()
-        
+
+            # checking whether the ith or jth particle of this event has
+            # collided since the event was put in the queue
+
+            if self.is_valid(current,t):
+                
+                time = current.time
+
+                # updating the time of the last collision of the particles
+                # involved in the collision
+
+                self.particles[:2,:] += (time - t) * self.particles[2:,:] # move all particles
+                self.new_velocities(current)         # setting new velocities
+                t = time                             # updating the time
+                
+                if current.event_type == "pair":     # collision between a pair of particles
+                    self.last_collision[[current.i,current.j]] = t
+                else:
+                    self.last_collision[current.i] = t # collision between particle and wall
+                    
+                new_collision = self.wall_collision_time(current.i)                                       # figure out the next collision for particle i
+                heapq.heappush(self.events,Event(new_collision[0] + t,current.i, -1, new_collision[1],t)) # add new collision to queue
+
+
+                """
+                here: change new_collision above to
+                a call here on self.next_collision(current) which calculates the next collision and 
+                puts the result in the queue.
+                """
+
+                if save_snapshots:
+                    self.plot_positions("./fig/img{0:0=3d}.png".format(iter))
+                
+                iter += 1
+                

@@ -53,20 +53,20 @@ from events import *
 ```
 
 ```python
-R = 0.01
-M = 0.01
+e1 = Event(1,2,3,4,1)
+e2 = Event(0.1,234,234,234,1)
 ```
 
 ```python
-collection = Ensemble(2)
+e1 < e2
 ```
 
 ```python
-v = np.array([[1,0],[0,1]])
+collection = Ensemble(100)
 ```
 
 ```python
-collection.set_velocities(v)
+collection.set_velocities(np.random.random((2,100)))
 ```
 
 ```python
@@ -74,9 +74,5 @@ collection.plot_positions()
 ```
 
 ```python
-collection.simulate(10)
-```
-
-```python
-
+%timeit collection.simulate(100)
 ```
