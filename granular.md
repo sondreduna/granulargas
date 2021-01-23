@@ -62,11 +62,18 @@ e1 < e2
 ```
 
 ```python
-collection = Ensemble(100)
+collection = Ensemble(2)
 ```
 
 ```python
-collection.set_velocities(np.random.random((2,100)))
+collection.radii = np.array([0.01, 0.3])
+collection.M     = np.array([0.01, 0.1])
+collection.particles[:2,0] = np.array([[0.2,0.6]])
+collection.particles[:2,1] = np.array([[0.6,0.5]])
+```
+
+```python
+collection.set_velocities([[0.1,0.],[0,0.]])
 ```
 
 ```python
@@ -74,5 +81,25 @@ collection.plot_positions()
 ```
 
 ```python
-%timeit collection.simulate(100)
+collection.simulate(100, True)
+```
+
+```python
+collection = Ensemble(200)
+```
+
+```python
+collection.set_velocities(np.random.random((2,200)))
+```
+
+```python
+collection.plot_positions()
+```
+
+```python
+collection.simulate(0.1,False)
+```
+
+```python
+
 ```

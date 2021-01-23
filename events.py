@@ -3,9 +3,11 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 from matplotlib import rc
 import heapq
+from prettytable import PrettyTable
 
 R = 0.01
 M = 0.01
+eps = 1e-4
 
 class Event:
     
@@ -19,6 +21,19 @@ class Event:
 
     def __lt__(self,other):
         return self.time < other.time
+
+    def __repr__(self):
+        x = PrettyTable()
+
+        x.field_names = ["Event type", "i", "j","time of event","insert time"]
+
+        if self.event_type == "pair":
+            x.add_row([self.event_type,self.i,self.j,self.time,self.insert_time])
+
+        else:
+            x.add_row([self.event_type,self.i,None,self.time,self.insert_time])
+        return x.get_string()
+        
 
 class Ensemble:
     """
@@ -41,12 +56,13 @@ class Ensemble:
         
         """
         self.radii = np.full(N,R)
+        self.N = N
+        
         self.particles = np.zeros((4,N), dtype = np.float64)
         
-        self.particles[:2,:] = self.radii + np.random.random((2,N)) * (1 - self.radii)
+        self.randomize_positions()
         
         self.last_collision = np.zeros(N)
-        self.N = N
         
         self.M = np.full(N,M)
         
@@ -63,6 +79,33 @@ class Ensemble:
         
     def set_masses(self,m):
         self.M = m
+
+    def randomize_positions_first(self):
+        self.particles[:2,:] = self.radii + np.random.random((2,self.N)) * (1 - 2*self.radii)
+
+        # loop to make sure none of the particles overlap
+        
+        for i in range(1,self.N):
+            x_ij = self.particles[0,i] - self.particles[0,:i-1]
+            y_ij = self.particles[1,i] - self.particles[1,:i-1]
+            
+            while np.any(x_ij**2 + y_ij**2 < (self.radii[:i-1] + self.radii[i])**2):
+                self.particles[:2,i] = self.radii[i] + np.random.random(2) * (1 - 2*self.radii[i])
+
+    def randomize_positions(self):
+
+        # Distributing the particles uniformly, not overlapping,
+        # assuming all radii are equal.
+        r = self.radii[0]
+        assert( np.all(self.radii == r ) )
+
+        x = np.arange(3/2 * r,1 - 3/2 * r, 3 * r )
+        y = np.arange(3/2 * r,1 - 3/2 * r, 3 * r )
+
+        assert( self.N <= x.size **2 ) # check that we have enough points to draw from 
+        
+        for i in range(self.N):
+            self.particles[:2,i] = np.array([np.random.choice(x, replace = False), np.random.choice(y,replace = False)])
         
     def plot_positions(self,savefig = ""):
         
@@ -117,30 +160,74 @@ class Ensemble:
         return delta_t , collision_type
 
     def particle_collision_time(self,i):
-        raise NotImplementedError
-    def next_collision(self,i):
-        raise NotImplementedError
+
+        delta_t = np.inf
+        other   = -1
+        
+        for j in range(self.N):
+            if i != j:
+                delta_x = self.particles[:2,j] - self.particles[:2,i]
+                delta_v = self.particles[2:,j] - self.particles[2:,i]
+                R_ij    = self.radii[i] + self.radii[j]
+                d       = (delta_x @ delta_v)**2 - (delta_v @ delta_v) * ((delta_x @ delta_x) - R_ij**2)
+
+                if delta_v @ delta_x < 0 and d > 0:
+                    new_t =  - (delta_v @ delta_x + np.sqrt(d))/(delta_v @ delta_v)
+
+                    if new_t < delta_t:
+                        delta_t = new_t
+                        other   = j
+                    
+        return delta_t, other
+            
+    def next_collision(self,i,t):
+        delta_t = np.inf
+        other   = -1
+
+        wall = self.wall_collision_time(i)
+        pair = self.particle_collision_time(i)
+        
+        if wall[0] < pair[0]:
+            return Event(wall[0] + t,i,-1,wall[1],t)
+        else:
+            return Event(pair[0] + t ,i,pair[1],"pair",t)
     
     def new_velocities(self,event):
         
         if event.event_type == "ver_wall":
             self.particles[2,event.i] *= - self.xi
         elif event.event_type == "hor_wall":
-            self.particles[3,event.i] *= - self.xi 
+            self.particles[3,event.i] *= - self.xi
+        else:
+            i = event.i
+            j = event.j
+            
+            R_ij = np.sum(self.radii[[i,j]])
+            delta_x_prime = self.particles[:2,j] - self.particles[:2,i]
+            delta_v_prime = self.particles[2:,j] - self.particles[2:,i]
+            self.particles[2:,i] = self.particles[2:,i] + ( (1+ self.xi) * \
+                                      (self.M[j])/(self.M[i] + self.M[j]) * 1/R_ij**2 * \
+                                      (delta_x_prime @ delta_v_prime) ) * delta_x_prime
+            self.particles[2:,j] = self.particles[2:,j] - ( (1+ self.xi) * \
+                                      (self.M[i])/(self.M[i] + self.M[j]) * 1/R_ij**2 * \
+                                      (delta_x_prime @ delta_v_prime) ) * delta_x_prime
+            
     
     def start_simulation(self):
         
         for i in range(self.N):
-            collision = self.wall_collision_time(i)
+            new_event = self.next_collision(i,0)
             
-            heapq.heappush(self.events, Event(collision[0],i,-1,collision[1],0))
+            heapq.heappush(self.events, new_event)
 
     def is_valid(self,event,t):
 
         t_1 = self.last_collision[event.i]
         t_2 = self.last_collision[event.j]
+
+        T = event.insert_time
         
-        return (event.event_type == "pair") and ((t_1 <= t) and (t_2 <= t)) or (event.event_type != "pair") and (t_1 <= t)
+        return ((event.event_type == "pair") and ((t_1 <= T) and (t_2 <= T))) or ((event.event_type != "pair") and (t_1 <= T))
             
     def simulate(self, T, save_snapshots = False):
         
@@ -151,7 +238,6 @@ class Ensemble:
 
         iter = 0
         while t < T:
-
             # popping the earliest event
             current = heapq.heappop(self.events)
 
@@ -171,12 +257,11 @@ class Ensemble:
                 
                 if current.event_type == "pair":     # collision between a pair of particles
                     self.last_collision[[current.i,current.j]] = t
+                    heapq.heappush(self.events, self.next_collision(current.i,t))
+                    heapq.heappush(self.events, self.next_collision(current.j,t))
                 else:
                     self.last_collision[current.i] = t # collision between particle and wall
-                    
-                new_collision = self.wall_collision_time(current.i)                                       # figure out the next collision for particle i
-                heapq.heappush(self.events,Event(new_collision[0] + t,current.i, -1, new_collision[1],t)) # add new collision to queue
-
+                    heapq.heappush(self.events, self.next_collision(current.i,t))
 
                 """
                 here: change new_collision above to
