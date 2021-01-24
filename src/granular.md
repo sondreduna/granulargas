@@ -148,11 +148,11 @@ collection.simulate(10,True)
 ```
 
 ```python
-N = 1000
+N = 500
 ```
 
 ```python
-collection = Ensemble(N, 0.001)
+collection = Ensemble(N, 0.005)
 ```
 
 ```python
@@ -169,33 +169,13 @@ collection.plot_positions()
 ```
 
 ```python
-v_abs = np.sqrt( v[0]**2 + v[1]**2 )
-
-fig = plt.figure()
-
-plt.title(r"\textbf{Initial velocity distribution}")
-sns.histplot(v_abs)
+collection.plot_velocity_distribution(r"\textbf{Initial distribution}")
 ```
 
 ```python
-collection.simulate(10)
+collection.simulate(100)
 ```
 
 ```python
-v = collection.particles[2:]
-
-v_abs = np.sqrt( v[0]**2 + v[1]**2 )
-
-fig = plt.figure()
-
-plt.title(r"\textbf{Velocity distribution}")
-sns.histplot(v_abs)
-```
-
-```python
-fig.savefig("./fig/boltzmann_dist.pdf")
-```
-
-```python
-
+collection.plot_velocity_distribution(r"\textbf{Final distribution}",compare = True, savefig = "../fig/vel_dist.pdf")
 ```

@@ -7,6 +7,8 @@ from prettytable import PrettyTable
 from tqdm import tqdm
 import numba as nb
 
+import plotting 
+
 M = 0.01
 eps = 1e-4
 
@@ -82,6 +84,30 @@ class Ensemble:
     def set_masses(self,m):
         self.M = m
 
+    def get_velocities(self):
+        return self.particles[2:,:]
+
+    def get_v_square(self):
+        v = self.get_velocities()
+        return np.einsum('ij,ij->j',v,v)
+
+    def get_positions(self):
+        return self.particles[:2,:]
+
+    def kT(self):
+        m = self.M[0]
+        assert(np.all(self.M == m))
+
+        v2 = self.get_v_square()
+        
+        return np.average(v2) * m / 2
+
+    def plot_positions(self,savefig = ""):
+        plotting._plot_positions(self,savefig)
+
+    def plot_velocity_distribution(self, title, savefig= "", compare = False):
+        plotting._plot_velocity_distribution(self,title,savefig,compare)
+
     def randomize_positions_first(self):
         self.particles[:2,:] = self.radii + np.random.random((2,self.N)) * (1 - 2*self.radii)
 
@@ -109,30 +135,6 @@ class Ensemble:
         for i in range(self.N):
             self.particles[:2,i] = np.array([np.random.choice(x, replace = False), np.random.choice(y,replace = False)])
         
-    def plot_positions(self,savefig = ""):
-        
-        fig, ax = plt.subplots(figsize = (8,8))
-
-        for i in range(self.N):
-            
-            ax.add_artist(plt.Circle((self.particles[0,i],
-                                    self.particles[1,i]),
-                                    self.radii[i],
-                                    linewidth=0,
-                                    color = "blue"))
-        
-        # boundary of box
-        plt.hlines([0,1],[0,0],[1,1], ls = "--", color = "black")
-        plt.vlines([0,1],[0,0],[1,1], ls = "--", color = "black")
-        
-        plt.grid(ls = "--")
-        
-        plt.tight_layout()
-        
-        if savefig != "":
-            plt.savefig(savefig)
-
-            plt.close()
     
     def wall_collision_time(self,i):
         
