@@ -191,3 +191,11 @@ fig = plt.figure()
 plt.title(r"\textbf{Velocity distribution}")
 sns.histplot(v_abs)
 ```
+
+```python
+fig.savefig("./fig/boltzmann_dist.pdf")
+```
+
+```python
+
+```
