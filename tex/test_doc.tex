@@ -1,0 +1,62 @@
+\input{./preamble.tex}
+
+\begin{document}
+	
+\begin{titlepage}
+	\begin{center}
+	\setlength{\parskip}{0em}
+	\thispagestyle{titlepage}
+	
+	\centering{
+		\Huge{\textbf{Event driven simulation of a $2$-dimensional gas}}
+	}
+
+	\vspace{4mm}
+	
+	\large{\textbf{Sondre Duna Lundemo}}$\dagger$
+	
+	\normalsize{Department of Physics, Norwegian University of Science and Technology, Trondheim Norway \\
+	TFY4235 - Computational physics
+	}
+	
+	(\textit{Last updated on \today})
+	\end{center}
+	
+	\vspace{4mm}
+	
+	\setlength{\parindent}{2em}An event driven approach is used to simulate a gas of hard discs in two dimensions. The framework built is used to study statistical properties of the gas at and towards equilibrium. The numerical results are compared with well known results from classical statistical mechanics. 
+	
+	
+
+\end{titlepage}
+
+\newpage
+\setlength{\parskip}{0em}
+\tableofcontents
+\setlength{\parskip}{1em}
+\newpage
+
+\section{Introduction and background}
+
+\input{./introduction}
+
+\section{Overview of code}
+
+\input{./code_overview}
+
+\section{Results}
+
+\subsection{Speed distribution at equilibrium}
+
+\subsection{Mixture of two gases}
+
+\subsection{Mixing in the presence of energy dissipation}
+
+\subsection{Crater formation from projectile impact}
+
+\section{Remarks on performance}
+
+\bibliographystyle{unsrt}
+\bibliography{references}
+
+\end{document}

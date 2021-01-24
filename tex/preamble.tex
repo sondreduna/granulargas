@@ -1,0 +1,205 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[left=2.00cm,right=2.00cm,top=2.00cm,bottom=2.00cm]{geometry}
+\usepackage{transparent}
+\usepackage{amsmath}                                 % AMS Math Package
+\usepackage[utf8]{inputenc}
+\usepackage{amsthm}                                  % Theorem Formatting
+\usepackage{amssymb}                                 % Math symbols such as \mathbb
+\usepackage{graphicx}                                % Allows for eps images
+%\usepackage[dvips,a4paper,margin=1in,bottom=1in]{geometry}
+\usepackage{tensor}
+
+% Sets margins and page size
+
+\usepackage{amsmath, esint,mathrsfs}
+\def\doubleunderline#1{\underline{\underline{#1}}}
+\renewcommand{\labelenumi}{(\alph{enumi})}                % Use letters for enumerate
+
+\usepackage{enumerate}
+\usepackage{caption}
+
+\newcommand{\gv}[1]{\ensuremath{\mbox{\boldmath$ #1 $}}} 
+\newcommand{\uv}[1]{\ensuremath{\mathbf{\hat{#1}}}}       % enhetsvektor
+\newcommand{\abs}[1]{\left| #1 \right|}                   % abslouttverdi
+\newcommand{\avg}[1]{\left< #1 \right>}                   % gjennomsnitt
+
+\newcommand{\der}[2]{\frac{\text{d} #1}{\text{d} #2}}     % derivert
+\newcommand{\dd}[2]{\frac{\text{d}^2 #1}{\text{d}#2^2}}   % dobbelderivert
+\newcommand{\pd}[2]{\frac{\partial #1}{\partial #2}}      % partiellderiverte
+\newcommand{\pdd}[2]{\frac{\partial^2 #1}{\partial #2^2}} % doble partiellderiverte
+
+% Kvantemekanikk:
+
+\newcommand{\ket}[1]{\left| #1 \right>}                    % for Dirac kets
+\newcommand{\bra}[1]{\left< #1 \right|}                    % for Dirac bras
+\newcommand{\braket}[2]{\left< #1 \vphantom{#2} \right|
+	\left. #2 \vphantom{#1} \right>}                       % for Dirac brackets
+\newcommand{\matrixel}[3]{\left< #1 \vphantom{#2#3} \right|
+	#2 \left| #3 \vphantom{#1#2} \right>}                  % for Dirac matrix elements
+
+% Vektoranalyse
+
+\newcommand{\grad}[1]{\gv{\nabla} #1}                      % gradient
+\let\divsymb=\div                                          % nytt navn til div
+\renewcommand{\div}[1]{\gv{\nabla} \cdot \v{#1}}           % divergens
+\newcommand{\curl}[1]{\gv{\nabla} \times \v{#1}}           % curl
+
+
+% div macros
+
+\newcommand{\iu}{\textup{i}} % imaginary unit
+\newcommand{\e}{\textup{e}} % exponent
+\newcommand{\intd}[1]{\int\text{d}#1}
+
+% document layout
+
+\setlength{\parindent}{0em}
+\setlength{\parskip}{1em}
+\setlength{\parindent}{0pt}
+
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+
+\usepackage{nameref}
+\makeatletter
+\newcommand*{\currentname}{\@currentlabelname}
+\makeatother
+
+\author{Sondre Duna Lundemo}
+
+\usepackage{xcolor}
+
+\newcommand\bluetextit[1]{\textcolor{blue}{\textit{\sffamily#1}}}
+\newcommand\bluetextbf[1]{\textcolor{blue}{\textbf{\sffamily#1}}}
+
+\pagestyle{fancy}
+\renewcommand{\headrulewidth}{0.5pt}
+\fancyhf{}
+\rhead{\textit{\fontfamily{cmr}\selectfont Sondre Duna Lundemo}}
+\lhead{\textsc{\currentname}}
+\cfoot{\textemdash \, \thepage \, \textemdash}
+
+\titleformat*{\section}{\bfseries \Large}
+\titleformat*{\subsection}{\bfseries\large}
+\titleformat*{\subsubsection}{\bfseries \normalsize}
+
+\usepackage{hyperref}
+\hypersetup{colorlinks=true,linkcolor=blue}
+
+\fancypagestyle{titlepage}{
+	\fancyhf{}
+	\fancyfoot[C]{$\dagger$\href{mailto:sondre@duna.no}{\texttt{sondre@duna.no}}}
+	\fancyfootoffset{-4cm}
+	\renewcommand{\headrulewidth}{0pt}
+	\renewcommand\footrulewidth{0.5pt}
+}
+
+% theoremstyles
+
+\theoremstyle{plain}
+\newtheorem{thm}{Theorem}
+\newtheorem{axiom}{Axiom}
+
+\theoremstyle{definition}
+
+\newtheorem{definition}{Definition}
+\newtheorem{lemma}{Lemma}
+\newtheorem{cor}{Corollary}
+\newtheorem{prop}{Proposition}
+
+\theoremstyle{remark}
+
+\newtheorem{remark}{Remark}
+\newtheorem{notation}{Notation}
+
+\usepackage{enumitem}
+
+\def\be{\begin{equation}}
+\def\ee{\end{equation}}
+
+\def\bse{\begin{equation*}}
+\def\ese{\end{equation*}}
+
+\def\bt{\begin{thm}}
+\def\et{\end{thm}}
+
+\def\bl{\begin{lemma}}
+\def\el{\end{lemma}}
+
+\def\bc{\begin{cor}}
+\def\ec{\end{cor}}
+
+\def\br{\begin{remark}}
+\def\er{\end{remark}}
+
+\def\bal{\begin{align}}
+	\def\eal{\end{align}}
+	
+\def\bd{\begin{definition}}
+	\def\ed{\end{definition}}
+
+\def\bit{\begin{itemize}}
+	\def\eit{\end{itemize}}
+
+\def\bt{\begin{thm}}
+	\def\et{\end{thm}}
+
+\let\vaccent=\v % rename builtin command \v{} to \vaccent{}
+\renewcommand{\v}[1]{\ensuremath{\mathbf{#1}}} % vektor
+
+%miscellaneous shortcuts
+
+\providecommand{\AA}{\mathbb{A}}
+\providecommand{\BB}{\mathbb{B}}
+\providecommand{\CC}{\mathbb{C}}
+\providecommand{\DD}{\mathbb{D}}
+\providecommand{\EE}{\mathbb{E}}
+\providecommand{\FF}{\mathbb{F}}
+\providecommand{\GG}{\mathbb{G}}
+\providecommand{\HH}{\mathbb{H}}
+\providecommand{\II}{\mathbb{I}}
+\providecommand{\JJ}{\mathbb{J}}
+\providecommand{\KK}{\mathbb{K}}
+\providecommand{\LL}{\mathbb{L}}
+\providecommand{\MM}{\mathbb{M}}
+\providecommand{\NN}{\mathbb{N}}
+\providecommand{\OO}{\mathbb{O}}
+\providecommand{\PP}{\mathbb{P}}
+\providecommand{\QQ}{\mathbb{Q}}
+\providecommand{\RR}{\mathbb{R}}
+\providecommand{\SS}{\mathbb{S}}
+\providecommand{\TT}{\mathbb{T}}
+\providecommand{\UU}{\mathbb{U}}
+\providecommand{\VV}{\mathbb{V}}
+\providecommand{\WW}{\mathbb{W}}
+\providecommand{\XX}{\mathbb{X}}
+\providecommand{\YY}{\mathbb{Y}}
+\providecommand{\ZZ}{\mathbb{Z}}
+
+\providecommand{\A}{\mathcal{A}}
+\providecommand{\B}{\mathcal{B}}
+\providecommand{\C}{\mathcal{C}}
+\providecommand{\D}{\mathcal{D}}
+\providecommand{\E}{\mathcal{E}}
+\providecommand{\F}{\mathcal{F}}
+\providecommand{\G}{\mathcal{G}}
+\providecommand{\H}{\mathcal{H}}
+\providecommand{\I}{\mathcal{I}}
+\providecommand{\J}{\mathcal{J}}
+\providecommand{\K}{\mathcal{K}}
+\providecommand{\L}{\mathcal{L}}
+\providecommand{\M}{\mathcal{M}}
+\providecommand{\N}{\mathcal{N}}
+\providecommand{\CO}{\mathcal{O}}
+\providecommand{\P}{\mathcal{P}}
+\providecommand{\Q}{\mathcal{Q}}
+\providecommand{\R}{\mathcal{R}}
+\providecommand{\S}{\mathcal{S}}
+\providecommand{\T}{\mathcal{T}}
+\providecommand{\U}{\mathcal{U}}
+\providecommand{\V}{\mathcal{V}}
+\providecommand{\W}{\mathcal{W}}
+\providecommand{\X}{\mathcal{X}}
+\providecommand{\Y}{\mathcal{Y}}
+\providecommand{\Z}{\mathcal{Z}}
