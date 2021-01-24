@@ -4,8 +4,9 @@ import matplotlib as mpl
 from matplotlib import rc
 import heapq
 from prettytable import PrettyTable
+from tqdm import tqdm
+import numba as nb
 
-R = 0.01
 M = 0.01
 eps = 1e-4
 
@@ -33,8 +34,9 @@ class Event:
         else:
             x.add_row([self.event_type,self.i,None,self.time,self.insert_time])
         return x.get_string()
-        
 
+
+    
 class Ensemble:
     """
     Wrapper for ensemble of particles
@@ -42,7 +44,7 @@ class Ensemble:
     
     """
     
-    def __init__(self,N):
+    def __init__(self,N,R = 0.01):
         """
         Setting the positions of N particles inside a square
         box of lengths 1 randomly according to U(0,1), and
@@ -132,7 +134,6 @@ class Ensemble:
 
             plt.close()
     
-    
     def wall_collision_time(self,i):
         
         v = self.particles[2:,i]
@@ -159,27 +160,38 @@ class Ensemble:
         
         return delta_t , collision_type
 
+    
     def particle_collision_time(self,i):
 
-        delta_t = np.inf
-        other   = -1
+        # Try to vectorise this ! 
+
+        T = np.full(self.N - 1, np.inf)
         
-        for j in range(self.N):
-            if i != j:
-                delta_x = self.particles[:2,j] - self.particles[:2,i]
-                delta_v = self.particles[2:,j] - self.particles[2:,i]
-                R_ij    = self.radii[i] + self.radii[j]
-                d       = (delta_x @ delta_v)**2 - (delta_v @ delta_v) * ((delta_x @ delta_x) - R_ij**2)
+        mask = np.ones(self.N,dtype = np.bool)
+        mask[i] = False
+        
+        r_ij = self.radii[mask] + self.radii[i]
+        delta_x = self.particles[:2,mask] - np.reshape(self.particles[:2,i],(2,1))
+        delta_v = self.particles[2:,mask] - np.reshape(self.particles[2:,i],(2,1))
 
-                if delta_v @ delta_x < 0 and d > 0:
-                    new_t =  - (delta_v @ delta_x + np.sqrt(d))/(delta_v @ delta_v)
+        vv = np.einsum('ij,ij->j',delta_v,delta_v)
+        vx = np.einsum('ij,ij->j',delta_v,delta_x)
+        xx = np.einsum('ij,ij->j',delta_x,delta_x)
 
-                    if new_t < delta_t:
-                        delta_t = new_t
-                        other   = j
-                    
-        return delta_t, other
-            
+        d = vx ** 2 - vv * ( xx - r_ij**2 )
+
+        c_mask = (vx < 0 ) * (d > 0)
+        
+        T[c_mask] = - ( vx[c_mask] + np.sqrt(d[c_mask]))/(vv[c_mask])
+
+        if sum(c_mask) == 0:
+            return np.inf, -1
+        else:
+            other = np.argmin(T)
+                
+            return T[other], other + (other >= i) # fixing indexing
+                
+        
     def next_collision(self,i,t):
         delta_t = np.inf
         other   = -1
@@ -234,19 +246,23 @@ class Ensemble:
         t = 0.0
         self.last_collision = np.zeros(self.N) # reset the time
         self.start_simulation()
+        
+        progress_bar = tqdm(total = int(T * 10000))
 
-
-        iter = 0
+        iter = 0 
         while t < T:
             # popping the earliest event
+
             current = heapq.heappop(self.events)
 
             # checking whether the ith or jth particle of this event has
             # collided since the event was put in the queue
-
+            
             if self.is_valid(current,t):
                 
                 time = current.time
+                
+                progress_bar.update(int(10000 * (time - t)))
 
                 # updating the time of the last collision of the particles
                 # involved in the collision
@@ -273,4 +289,7 @@ class Ensemble:
                     self.plot_positions("./fig/img{0:0=3d}.png".format(iter))
                 
                 iter += 1
+
+        progress_bar.close()
                 
+

@@ -23,6 +23,7 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 from matplotlib import rc
 import heapq 
+import seaborn as sns
 
 # Setting common plotting parameters
 
@@ -49,16 +50,59 @@ plt.rcParams.update(newparams)
 ```
 
 ```python
+v_1 = np.random.random((2,10000))
+v_2 = np.random.random((2,10000))
+```
+
+```python
+a = np.array([1,1,1,1,10,101,10])
+
+print(np.argmin(a))
+```
+
+```python
+v_1 = np.array([[1,2,3,4,5],[2,4,6,8,10]])
+v_2 = np.array([[2,2,2,2,2],[2,2,2,2,2]])
+```
+
+```python
+v = np.array([1,1])
+```
+
+```python
+v_1 + np.reshape(v,(2,1))
+```
+
+```python
+%timeit v_1 * v_2
+```
+
+```python
+%timeit np.einsum('ij,ij->i',v_1,v_2)
+```
+
+```python
+%timeit np.multiply(v_1,v_2)
+```
+
+```python
+%timeit np.sum(v_1 * v_2, axis = 0)
+```
+
+```python
+np.einsum('ij,ij->j',v_1,v_2)
+```
+
+```python
+T = np.full(10000,np.inf)
+```
+
+```python
+T[ (v_1 * v_2 < 0.5) * (v_1 > 0.5) ] = 1
+```
+
+```python
 from events import *
-```
-
-```python
-e1 = Event(1,2,3,4,1)
-e2 = Event(0.1,234,234,234,1)
-```
-
-```python
-e1 < e2
 ```
 
 ```python
@@ -85,11 +129,14 @@ collection.simulate(100, True)
 ```
 
 ```python
-collection = Ensemble(200)
-```
+collection = Ensemble(4)
 
-```python
-collection.set_velocities(np.random.random((2,200)))
+collection.M = np.array([0.01,0.1,0.01,0.01])
+collection.particles[:2,0] = np.array([[0.2,0.5]])
+collection.particles[:2,1] = np.array([[0.6,0.5]])
+collection.particles[2:,0] = np.array([[0.1,0]])
+collection.particles[:2,2] = np.array([[0.1,0.1]])
+collection.particles[2:,2] = np.random.random(2)
 ```
 
 ```python
@@ -97,9 +144,50 @@ collection.plot_positions()
 ```
 
 ```python
-collection.simulate(0.1,False)
+collection.simulate(10,True)
 ```
 
 ```python
+N = 1000
+```
 
+```python
+collection = Ensemble(N, 0.001)
+```
+
+```python
+v_0 = 5
+
+theta = np.random.random(N) * np.pi * 2
+
+v = v_0 * np.array([np.cos(theta),np.sin(theta)])
+collection.set_velocities(v)
+```
+
+```python
+collection.plot_positions()
+```
+
+```python
+v_abs = np.sqrt( v[0]**2 + v[1]**2 )
+
+fig = plt.figure()
+
+plt.title(r"\textbf{Initial velocity distribution}")
+sns.histplot(v_abs)
+```
+
+```python
+collection.simulate(10)
+```
+
+```python
+v = collection.particles[2:]
+
+v_abs = np.sqrt( v[0]**2 + v[1]**2 )
+
+fig = plt.figure()
+
+plt.title(r"\textbf{Velocity distribution}")
+sns.histplot(v_abs)
 ```
