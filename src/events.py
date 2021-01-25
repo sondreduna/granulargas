@@ -9,18 +9,19 @@ import numba as nb
 
 import plotting 
 
-M = 0.01
+M = 10
 eps = 1e-4
 
 class Event:
     
-    def __init__(self, time, i, j, event_type,insert_time):
+    def __init__(self, time, i, j, event_type,count_i, count_j):
 
-        self.time        = time
-        self.i           = i
-        self.j           = j
-        self.event_type  = event_type
-        self.insert_time = insert_time
+        self.time         = time
+        self.i            = i
+        self.j            = j
+        self.event_type   = event_type
+        self.count_i      = count_i
+        self.count_j      = count_j
 
     def __lt__(self,other):
         return self.time < other.time
@@ -28,16 +29,21 @@ class Event:
     def __repr__(self):
         x = PrettyTable()
 
-        x.field_names = ["Event type", "i", "j","time of event","insert time"]
+        x.field_names = ["Event type", "i", "j","time of event","count for particle i", "count for particle j"]
 
         if self.event_type == "pair":
-            x.add_row([self.event_type,self.i,self.j,self.time,self.insert_time])
+            x.add_row([self.event_type,self.i,self.j,self.time,self.count_i,self.count_j])
 
         else:
-            x.add_row([self.event_type,self.i,None,self.time,self.insert_time])
+            x.add_row([self.event_type,self.i,None,self.time,self.count_i,None])
         return x.get_string()
 
-
+    def is_valid(self,count):
+        if self.event_type == "pair":
+            return (count[self.i] == self.count_i) and( count[self.j] == self.count_j)
+        else:
+            return count[self.i] == self.count_i
+        
     
 class Ensemble:
     """
@@ -62,11 +68,11 @@ class Ensemble:
         self.radii = np.full(N,R)
         self.N = N
         
-        self.particles = np.zeros((4,N), dtype = np.float64)
+        self.particles = np.zeros((4,N))
         
         self.randomize_positions()
         
-        self.last_collision = np.zeros(N)
+        self.count = np.zeros(N)
         
         self.M = np.full(N,M)
         
@@ -102,11 +108,17 @@ class Ensemble:
         
         return np.average(v2) * m / 2
 
+    def total_energy(self):
+        return 1/2 * np.dot(self.get_v_square(),self.M)
+
     def plot_positions(self,savefig = ""):
         plotting._plot_positions(self,savefig)
 
     def plot_velocity_distribution(self, title, savefig= "", compare = False):
         plotting._plot_velocity_distribution(self,title,savefig,compare)
+
+    def plot_energy(self, savefig = ""):
+        plotting._plot_energy(self,savefig)
 
     def randomize_positions_first(self):
         self.particles[:2,:] = self.radii + np.random.random((2,self.N)) * (1 - 2*self.radii)
@@ -143,8 +155,6 @@ class Ensemble:
         delta_t_h = np.inf
         delta_t_v = np.inf 
         
-        collision_type = "hor_wall"
-        
         if v[0] > 0 :
             delta_t_v = (1 - self.radii[i] - self.particles[0,i])/v[0]
         elif v[0] < 0:
@@ -154,20 +164,16 @@ class Ensemble:
             delta_t_h = (1 - self.radii[i] - self.particles[1,i])/v[1]
         elif v[1] < 0:
             delta_t_h = (self.radii[i] - self.particles[1,i])/v[1]
-            
-        delta_t = delta_t_h
-        if delta_t_v < delta_t_h:
-            collision_type = "ver_wall"
-            delta_t = delta_t_v
+
         
-        return delta_t , collision_type
+        return delta_t_h, delta_t_v
 
     
     def particle_collision_time(self,i):
 
-        # Try to vectorise this ! 
-
         T = np.full(self.N - 1, np.inf)
+        indexes = np.arange(self.N)
+        indexes = np.delete(indexes,i)
         
         mask = np.ones(self.N,dtype = np.bool)
         mask[i] = False
@@ -184,27 +190,41 @@ class Ensemble:
 
         c_mask = (vx < 0 ) * (d > 0)
         
-        T[c_mask] = - ( vx[c_mask] + np.sqrt(d[c_mask]))/(vv[c_mask])
+        T[c_mask] = - ( vx[c_mask] + np.sqrt(d[c_mask]) )/(vv[c_mask])
 
-        if sum(c_mask) == 0:
-            return np.inf, -1
-        else:
-            other = np.argmin(T)
-                
-            return T[other], other + (other >= i) # fixing indexing
-                
+        return T, indexes
+        
+
+    def particle_collision_time_loop(self,i):
+
+        T = np.full(self.N,np.inf)
+        J = np.arange(self.N)
+
+        for j in range(self.N):
+            if i != j:
+                delta_x = self.particles[:2,j] - self.particles[:2,i]
+                delta_v = self.particles[2:,j] - self.particles[2:,i]
+                R_ij    = self.radii[i] + self.radii[j]
+                d       = (delta_x @ delta_v)**2 - (delta_v @ delta_v) * ((delta_x @ delta_x) - R_ij**2)
+
+                if delta_v @ delta_x < 0 and d > 0:
+                    T[j] =  - (delta_v @ delta_x + np.sqrt(d))/(delta_v @ delta_v)
+
+        return T, J
+        
         
     def next_collision(self,i,t):
         delta_t = np.inf
         other   = -1
 
-        wall = self.wall_collision_time(i)
-        pair = self.particle_collision_time(i)
+        wall_h, wall_v = self.wall_collision_time(i)
+        pair_T, J = self.particle_collision_time(i)
         
-        if wall[0] < pair[0]:
-            return Event(wall[0] + t,i,-1,wall[1],t)
-        else:
-            return Event(pair[0] + t ,i,pair[1],"pair",t)
+        heapq.heappush(self.events,Event(wall_h + t ,i,-1,"hor_wall", self.count[i], -1))
+        heapq.heappush(self.events,Event(wall_v + t ,i,-1,"ver_wall", self.count[i], -1))
+        
+        for i in range(np.size(pair_T)):
+            heapq.heappush(self.events,Event(pair_T[i] + t ,i,J[i],"pair",self.count[i], self.count[J[i]]))
     
     def new_velocities(self,event):
         
@@ -216,13 +236,14 @@ class Ensemble:
             i = event.i
             j = event.j
             
-            R_ij = np.sum(self.radii[[i,j]])
+            R_ij = self.radii[i] + self.radii[j]
             delta_x_prime = self.particles[:2,j] - self.particles[:2,i]
             delta_v_prime = self.particles[2:,j] - self.particles[2:,i]
-            self.particles[2:,i] = self.particles[2:,i] + ( (1+ self.xi) * \
+            
+            self.particles[2:,i] += ( (1+ self.xi) * \
                                       (self.M[j])/(self.M[i] + self.M[j]) * 1/R_ij**2 * \
                                       (delta_x_prime @ delta_v_prime) ) * delta_x_prime
-            self.particles[2:,j] = self.particles[2:,j] - ( (1+ self.xi) * \
+            self.particles[2:,j] -= ( (1+ self.xi) * \
                                       (self.M[i])/(self.M[i] + self.M[j]) * 1/R_ij**2 * \
                                       (delta_x_prime @ delta_v_prime) ) * delta_x_prime
             
@@ -230,29 +251,23 @@ class Ensemble:
     def start_simulation(self):
         
         for i in range(self.N):
-            new_event = self.next_collision(i,0)
+            self.next_collision(i,0)
             
-            heapq.heappush(self.events, new_event)
-
-    def is_valid(self,event,t):
-
-        t_1 = self.last_collision[event.i]
-        t_2 = self.last_collision[event.j]
-
-        T = event.insert_time
-        
-        return ((event.event_type == "pair") and ((t_1 <= T) and (t_2 <= T))) or ((event.event_type != "pair") and (t_1 <= T))
-            
-    def simulate(self, T, save_snapshots = False):
+    def simulate(self, T):
         
         t = 0.0
-        self.last_collision = np.zeros(self.N) # reset the time
+        self.count = np.zeros(self.N) # reset counts
         self.start_simulation()
         
-        progress_bar = tqdm(total = int(T * 10000))
+        progress_bar = tqdm(total = int(T * 100))
 
-        iter = 0 
+        iter = 0
+        dt   = 0.1
+
+        self.E = np.zeros(int(T/dt) + 1, dtype = np.float64)
+        
         while t < T:
+            
             # popping the earliest event
 
             current = heapq.heappop(self.events)
@@ -260,38 +275,110 @@ class Ensemble:
             # checking whether the ith or jth particle of this event has
             # collided since the event was put in the queue
             
-            if self.is_valid(current,t):
+            if current.is_valid(self.count):
                 
                 time = current.time
                 
-                progress_bar.update(int(10000 * (time - t)))
+                if time == np.inf:
+                    break
+                
+                progress_bar.update(int(100 * (time - t)))
 
                 # updating the time of the last collision of the particles
                 # involved in the collision
 
                 self.particles[:2,:] += (time - t) * self.particles[2:,:] # move all particles
                 self.new_velocities(current)         # setting new velocities
+
+                # self.particles = np.around(self.particles,13) # rounding positions and velocities to 13 digits
+                
                 t = time                             # updating the time
                 
                 if current.event_type == "pair":     # collision between a pair of particles
-                    self.last_collision[[current.i,current.j]] = t
-                    heapq.heappush(self.events, self.next_collision(current.i,t))
-                    heapq.heappush(self.events, self.next_collision(current.j,t))
+                    self.count[[current.i,current.j]] += 1
+                    self.next_collision(current.i,t)
+                    self.next_collision(current.j,t)
                 else:
-                    self.last_collision[current.i] = t # collision between particle and wall
-                    heapq.heappush(self.events, self.next_collision(current.i,t))
-
-                """
-                here: change new_collision above to
-                a call here on self.next_collision(current) which calculates the next collision and 
-                puts the result in the queue.
-                """
-
-                if save_snapshots:
-                    self.plot_positions("./fig/img{0:0=3d}.png".format(iter))
+                    self.count[current.i] += 1
+                    self.next_collision(current.i,t)
                 
-                iter += 1
-
+                if t >= iter * dt :
+                    self.E[iter] = self.total_energy()
+                    iter += 1
+                    
+        self.E = self.E[:iter]
         progress_bar.close()
-                
 
+    def simulate_savefigs(self,T,dt, verbose = False):
+        
+        t = 0.0
+        t_2 = 0.0
+        
+        self.start_simulation()
+        self.count = np.zeros(self.N) # reset time
+        
+        progress_bar = tqdm(total = int(T * 100))
+
+        it = 0
+
+        self.E = np.zeros(int(T/dt) + 2, dtype = np.float64)
+        
+        while t < T:
+            # popping the earliest event
+            current = heapq.heappop(self.events)
+
+            # checking whether the ith or jth particle of this event has
+            # collided since the event was put in the queue            
+
+            print(np.size(self.events))
+            
+            if current.is_valid(self.count):
+                print("valid", np.size(self.events))
+                time = current.time
+
+                if time == t:
+                    time += 1e-4
+                
+                progress_bar.update(int(100 * (time - t)))
+                
+                if verbose:
+                    print(current)
+                    print(self.particles)
+                    print(it)
+                
+                while t_2 + dt < current.time:
+                    
+                    time_step = t_2 + dt - t
+                    
+                    self.particles[:2,:] += time_step * self.particles[2:,:] # move all particles forward
+                    self.plot_positions("/home/sondre/Pictures/figs_simulation/img{0:0=3d}.png".format(it))
+                    self.E[it] = self.total_energy()
+                    it += 1
+                    t_2 += dt
+                    t = t_2
+                
+                if time == np.inf:
+                    break
+                
+                # updating the time of the last collision of the particles
+                # involved in the collision
+
+                print("time - t: ",time - t)
+                print("t: ", t)
+                
+                self.particles[:2,:] += (time - t) * self.particles[2:,:] # move all particles
+                self.new_velocities(current)         # setting new velocities
+
+                # self.particles = np.around(self.particles,13) # rounding positions and velocities to 13 digits
+                
+                t = time                             # updating the time
+                
+                if current.event_type == "pair":     # collision between a pair of particles
+                    self.count[[current.i,current.j]] += 1
+                    self.next_collision(current.i,t)
+                    self.next_collision(current.j,t)
+                else:
+                    self.count[current.i] += 1
+                    self.next_collision(current.i,t)
+                
+        progress_bar.close()

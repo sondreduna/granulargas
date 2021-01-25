@@ -111,13 +111,13 @@ collection = Ensemble(2)
 
 ```python
 collection.radii = np.array([0.01, 0.3])
-collection.M     = np.array([0.01, 0.1])
+collection.M     = np.array([1, 10])
 collection.particles[:2,0] = np.array([[0.2,0.6]])
 collection.particles[:2,1] = np.array([[0.6,0.5]])
 ```
 
 ```python
-collection.set_velocities([[0.1,0.],[0,0.]])
+collection.set_velocities([[1,0.],[0,0.]])
 ```
 
 ```python
@@ -125,18 +125,18 @@ collection.plot_positions()
 ```
 
 ```python
-collection.simulate(100, True)
+collection.simulate(10, True)
 ```
 
 ```python
 collection = Ensemble(4)
 
-collection.M = np.array([0.01,0.1,0.01,0.01])
+collection.M = np.array([1,1,1,1]) * 10
 collection.particles[:2,0] = np.array([[0.2,0.5]])
 collection.particles[:2,1] = np.array([[0.6,0.5]])
-collection.particles[2:,0] = np.array([[0.1,0]])
+collection.particles[2:,0] = np.array([[1,0]])
 collection.particles[:2,2] = np.array([[0.1,0.1]])
-collection.particles[2:,2] = np.random.random(2)
+collection.particles[2:,2] = np.array([1,1])
 ```
 
 ```python
@@ -144,15 +144,15 @@ collection.plot_positions()
 ```
 
 ```python
-collection.simulate(10,True)
+collection.simulate(1000,True)
 ```
 
 ```python
-N = 500
+N = 50
 ```
 
 ```python
-collection = Ensemble(N, 0.005)
+collection = Ensemble(N, 0.01)
 ```
 
 ```python
@@ -173,9 +173,17 @@ collection.plot_velocity_distribution(r"\textbf{Initial distribution}")
 ```
 
 ```python
-collection.simulate(100)
+collection.simulate(100,True)
 ```
 
 ```python
 collection.plot_velocity_distribution(r"\textbf{Final distribution}",compare = True, savefig = "../fig/vel_dist.pdf")
+```
+
+```python
+collection.particles[:2,:]
+```
+
+```python
+
 ```

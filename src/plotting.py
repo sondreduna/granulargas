@@ -85,6 +85,22 @@ def _plot_positions(ensemble,savefig = ""):
     plt.tight_layout()
 
     if savefig != "":
-        plt.savefig(savefig)
+        fig.savefig(savefig)
 
         plt.close()
+
+def _plot_energy(ensemble, savefig = ""):
+
+    fig = plt.figure()
+
+    plt.plot(ensemble.E)
+    plt.xlabel("Time")
+    plt.ylabel("Energy")
+
+    plt.tight_layout()
+
+    if savefig != "":
+        fig.savefig(savefig)
+
+        plt.close()
+        
