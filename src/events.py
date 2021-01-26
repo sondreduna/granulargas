@@ -213,11 +213,10 @@ class Ensemble:
         other   = -1
 
         wall_h, wall_v = self.wall_collision_time(i)
-        pair_T, J = self.particle_collision_time(i)
+        # pair_T, J = self.particle_collision_time(i)
         
         heapq.heappush(self.events,Event(wall_h + t ,i,-1,"hor_wall", self.count[i], -1))
         heapq.heappush(self.events,Event(wall_v + t ,i,-1,"ver_wall", self.count[i], -1))
-
         self.particle_collisions(i,t)
         
         #for j in range(np.size(pair_T)):
@@ -251,18 +250,18 @@ class Ensemble:
         for i in range(self.N):
             self.next_collision(i,0)
             
-    def simulate(self, T):
+    def simulate(self, T, dt = 0.01):
         
         t = 0.0
+        t_save = 0.0
         self.count = np.zeros(self.N) # reset counts
         self.start_simulation()
         
-        progress_bar = tqdm(total = int(T * 100))
+        progress_bar = tqdm(total = int(T/dt))
 
-        iter = 0
-        dt   = 0.1
+        self.E = np.zeros(int(T/dt) + 1)
 
-        self.E = np.zeros(int(T/dt) + 1, dtype = np.float64)
+        it = 0
         
         while t < T:
             
@@ -279,8 +278,18 @@ class Ensemble:
                 
                 if time == np.inf:
                     break
-                
-                progress_bar.update(int(100 * (time - t)))
+
+
+                while t_save + dt < current.time:
+                    
+                    time_step = t_save + dt - t
+                    progress_bar.update(1)
+                    
+                    self.particles[:2,:] += time_step * self.particles[2:,:] # move all particles forward
+                    self.E[it] = self.total_energy()
+                    it += 1
+                    t_save += dt
+                    t = t_save
 
                 # updating the time of the last collision of the particles
                 # involved in the collision
@@ -300,11 +309,6 @@ class Ensemble:
                     self.count[current.i] += 1
                     self.next_collision(current.i,t)
                 
-                if t >= iter * dt :
-                    self.E[iter] = self.total_energy()
-                    iter += 1
-                    
-        self.E = self.E[:iter]
         progress_bar.close()
 
     def simulate_savefigs(self,T,dt, verbose = False):
