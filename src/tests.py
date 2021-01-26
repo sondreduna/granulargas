@@ -80,11 +80,26 @@ def constant_energy_check(N):
 
 def many_particles_plot_test(N, T, verbose = True):
     
-    collection = Ensemble(N)
+    collection = Ensemble(N, 0.005)
 
     collection.set_velocities(np.random.random((2,N)))
 
-    collection.simulate_savefigs(T,0.05,verbose)
+    collection.simulate_savefigs(T,0.01,verbose)
     #print(collection.particles)
 
+    
+def test_vel_dist(N,T):
+
+    collection = Ensemble(N,0.001)
+
+    v_0 = 0.1
+    
+    theta = np.random.random(N) * 2* np.pi
+    v = v_0 * np.array([np.cos(theta),np.sin(theta)])
+    
+    collection.set_velocities(v)
+
+    collection.simulate(T)
+
+    collection.plot_velocity_distribution(r"\textbf{Final distribution}", "../fig/dist.pdf",compare = True)
     

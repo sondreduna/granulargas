@@ -10,7 +10,6 @@ import numba as nb
 import plotting 
 
 M = 10
-eps = 1e-4
 
 class Event:
     
@@ -40,9 +39,9 @@ class Event:
 
     def is_valid(self,count):
         if self.event_type == "pair":
-            return (count[self.i] == self.count_i) and( count[self.j] == self.count_j)
+            return (count[self.i] == self.count_i) and (count[self.j] == self.count_j) and self.time > 0
         else:
-            return count[self.i] == self.count_i
+            return (count[self.i] == self.count_i) and self.time > 0
         
     
 class Ensemble:
@@ -192,13 +191,10 @@ class Ensemble:
         
         T[c_mask] = - ( vx[c_mask] + np.sqrt(d[c_mask]) )/(vv[c_mask])
 
-        return T, indexes
+        return T[c_mask], indexes[c_mask]
         
 
-    def particle_collision_time_loop(self,i):
-
-        T = np.full(self.N,np.inf)
-        J = np.arange(self.N)
+    def particle_collisions(self,i,t):
 
         for j in range(self.N):
             if i != j:
@@ -208,9 +204,8 @@ class Ensemble:
                 d       = (delta_x @ delta_v)**2 - (delta_v @ delta_v) * ((delta_x @ delta_x) - R_ij**2)
 
                 if delta_v @ delta_x < 0 and d > 0:
-                    T[j] =  - (delta_v @ delta_x + np.sqrt(d))/(delta_v @ delta_v)
-
-        return T, J
+                    new_t =  - (delta_v @ delta_x + np.sqrt(d))/(delta_v @ delta_v)
+                    heapq.heappush(self.events,Event(new_t + t ,i,j,"pair",self.count[i], self.count[j]))
         
         
     def next_collision(self,i,t):
@@ -222,9 +217,12 @@ class Ensemble:
         
         heapq.heappush(self.events,Event(wall_h + t ,i,-1,"hor_wall", self.count[i], -1))
         heapq.heappush(self.events,Event(wall_v + t ,i,-1,"ver_wall", self.count[i], -1))
+
+        self.particle_collisions(i,t)
         
-        for i in range(np.size(pair_T)):
-            heapq.heappush(self.events,Event(pair_T[i] + t ,i,J[i],"pair",self.count[i], self.count[J[i]]))
+        #for j in range(np.size(pair_T)):
+            #heapq.heappush(self.events,Event(pair_T[j] + t ,i,J[j],"pair",self.count[j], self.count[J[j]]))
+            
     
     def new_velocities(self,event):
         
@@ -328,24 +326,18 @@ class Ensemble:
             current = heapq.heappop(self.events)
 
             # checking whether the ith or jth particle of this event has
-            # collided since the event was put in the queue            
-
-            print(np.size(self.events))
+            # collided since the event was put in the queue
             
             if current.is_valid(self.count):
-                print("valid", np.size(self.events))
+                
                 time = current.time
-
-                if time == t:
-                    time += 1e-4
                 
                 progress_bar.update(int(100 * (time - t)))
                 
                 if verbose:
                     print(current)
-                    print(self.particles)
                     print(it)
-                
+                    
                 while t_2 + dt < current.time:
                     
                     time_step = t_2 + dt - t
@@ -362,9 +354,6 @@ class Ensemble:
                 
                 # updating the time of the last collision of the particles
                 # involved in the collision
-
-                print("time - t: ",time - t)
-                print("t: ", t)
                 
                 self.particles[:2,:] += (time - t) * self.particles[2:,:] # move all particles
                 self.new_velocities(current)         # setting new velocities

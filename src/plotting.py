@@ -41,7 +41,7 @@ def _plot_velocity_distribution(ensemble,title,savefig = "", compare = False):
 
     plt.title(title)
 
-    plt.hist(v_abs, color = "blue", alpha = 0.8, density = True, bins = 100)
+    sns.histplot(v_abs, stat = "density", color = "blue")
     
     if compare:
 
