@@ -114,8 +114,8 @@ class Ensemble:
     def plot_positions(self,savefig = ""):
         plotting._plot_positions(self,savefig)
 
-    def plot_velocity_distribution(self, title, savefig= "", compare = False):
-        plotting._plot_velocity_distribution(self,title,savefig,compare)
+    def plot_velocity_distribution(self,kT, title, savefig= "", compare = False):
+        plotting._plot_velocity_distribution(self,kT,title,savefig,compare)
 
     def plot_energy(self, savefig = ""):
         plotting._plot_energy(self,savefig)
@@ -172,11 +172,8 @@ class Ensemble:
     def particle_collision_time(self,i,t):
 
         T = np.full(self.N - 1, np.inf)
-        indexes = np.arange(self.N)
-        indexes = np.delete(indexes,i)
-        
-        mask = np.ones(self.N,dtype = np.bool)
-        mask[i] = False
+        mask = np.arange(self.N)
+        mask = np.delete(mask,i)
         
         r_ij = self.radii[mask] + self.radii[i]
         delta_x = self.particles[:2,mask] - np.reshape(self.particles[:2,i],(2,1))
@@ -193,7 +190,7 @@ class Ensemble:
         T[c_mask] = - ( vx[c_mask] + np.sqrt(d[c_mask]) )/(vv[c_mask])
 
         T = T[c_mask]
-        J = indexes[c_mask]
+        J = mask[c_mask]
 
         for j in range(np.size(T)):
             heapq.heappush(self.events,Event(T[j] + t ,i,J[j],"pair",self.count[i], self.count[J[j]]))
@@ -250,7 +247,7 @@ class Ensemble:
         for i in range(self.N):
             self.next_collision(i,0)
             
-    def simulate(self, T, dt = 0.01):
+    def simulate(self, T, dt = 0.1, ret_vels = True):
         
         t = 0.0
         t_save = 0.0
@@ -311,6 +308,9 @@ class Ensemble:
 
         self.E = self.E[:it]
         progress_bar.close()
+
+        if ret_vels:
+            return self.particles[2:,:]
 
     def simulate_savefigs(self,T,dt, verbose = False):
         

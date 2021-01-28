@@ -50,35 +50,8 @@ plt.rcParams.update(newparams)
 ```
 
 ```python
-cm = plt.get_cmap("viridis")
-```
-
-```python
-plt.scatter(1,1, color = cm(40))
-```
-
-```python
 v_1 = np.random.random((2,10000))
 v_2 = np.random.random((2,10000))
-```
-
-```python
-a = np.array([1,1,1,1,10,101,10])
-
-print(np.argmin(a))
-```
-
-```python
-v_1 = np.array([[1,2,3,4,5],[2,4,6,8,10]])
-v_2 = np.array([[2,2,2,2,2],[2,2,2,2,2]])
-```
-
-```python
-v = np.array([1,1])
-```
-
-```python
-v_1 + np.reshape(v,(2,1))
 ```
 
 ```python
@@ -102,19 +75,15 @@ np.einsum('ij,ij->j',v_1,v_2)
 ```
 
 ```python
-T = np.full(10000,np.inf)
-```
-
-```python
-T[ (v_1 * v_2 < 0.5) * (v_1 > 0.5) ] = 1
-```
-
-```python
 from events import *
 ```
 
 ```python
-collection = Ensemble(2)
+v = np.concatenate([collection1.particles[2:], collection2.particles[2:]],axis = 1)
+```
+
+```python
+v
 ```
 
 ```python
