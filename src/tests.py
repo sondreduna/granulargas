@@ -67,13 +67,13 @@ def two_particle_test_3():
 
     print(collection.particles)
 
-def constant_energy_check(N):
+def constant_energy_check(N,T):
 
-    collection = Ensemble(N)
+    collection = Ensemble(N, 0.001)
 
-    collection.set_velocities(np.random.random((2,N)))
+    collection.set_velocities(np.random.random((2,N)) * 0.1) 
 
-    collection.simulate(100)
+    collection.simulate(T)
     collection.plot_energy("/home/sondre/Pictures/figs_simulation/energy.pdf")
 
     print(collection.E)
@@ -82,7 +82,7 @@ def many_particles_plot_test(N, T, verbose = True):
     
     collection = Ensemble(N, 0.005)
 
-    collection.set_velocities(np.random.random((2,N)))
+    collection.set_velocities(-1 + 2 * np.random.random((2,N)))
 
     collection.simulate_savefigs(T,0.01,verbose)
     #print(collection.particles)

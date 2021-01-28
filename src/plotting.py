@@ -67,14 +67,14 @@ def _plot_positions(ensemble,savefig = ""):
         
 
     fig, ax = plt.subplots(figsize = (8,8))
+    cm = plt.get_cmap("viridis")
     
     for i in range(ensemble.N):
-
         ax.add_artist(plt.Circle((ensemble.particles[0,i],
                                 ensemble.particles[1,i]),
                                 ensemble.radii[i],
                                 linewidth=0,
-                                color = "blue"))
+                                color = cm(1/(1 + ensemble.count[i]))))
 
     # boundary of box
     plt.hlines([0,1],[0,0],[1,1], ls = "--", color = "black")

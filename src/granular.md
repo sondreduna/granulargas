@@ -50,6 +50,14 @@ plt.rcParams.update(newparams)
 ```
 
 ```python
+cm = plt.get_cmap("viridis")
+```
+
+```python
+plt.scatter(1,1, color = cm(40))
+```
+
+```python
 v_1 = np.random.random((2,10000))
 v_2 = np.random.random((2,10000))
 ```

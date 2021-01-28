@@ -6,6 +6,7 @@ import heapq
 from prettytable import PrettyTable
 from tqdm import tqdm
 import numba as nb
+from numba import types
 
 import plotting 
 
@@ -168,7 +169,7 @@ class Ensemble:
         return delta_t_h, delta_t_v
 
     
-    def particle_collision_time(self,i):
+    def particle_collision_time(self,i,t):
 
         T = np.full(self.N - 1, np.inf)
         indexes = np.arange(self.N)
@@ -191,9 +192,12 @@ class Ensemble:
         
         T[c_mask] = - ( vx[c_mask] + np.sqrt(d[c_mask]) )/(vv[c_mask])
 
-        return T[c_mask], indexes[c_mask]
-        
+        T = T[c_mask]
+        J = indexes[c_mask]
 
+        for j in range(np.size(T)):
+            heapq.heappush(self.events,Event(T[j] + t ,i,J[j],"pair",self.count[i], self.count[J[j]]))
+        
     def particle_collisions(self,i,t):
 
         for j in range(self.N):
@@ -205,22 +209,18 @@ class Ensemble:
 
                 if delta_v @ delta_x < 0 and d > 0:
                     new_t =  - (delta_v @ delta_x + np.sqrt(d))/(delta_v @ delta_v)
-                    heapq.heappush(self.events,Event(new_t + t ,i,j,"pair",self.count[i], self.count[j]))
-        
-        
+                    heapq.heappush(self.events, Event(new_t + t ,i,j,"pair",self.count[i], self.count[j]))
+
+                    
     def next_collision(self,i,t):
         delta_t = np.inf
         other   = -1
 
         wall_h, wall_v = self.wall_collision_time(i)
-        # pair_T, J = self.particle_collision_time(i)
-        
-        heapq.heappush(self.events,Event(wall_h + t ,i,-1,"hor_wall", self.count[i], -1))
-        heapq.heappush(self.events,Event(wall_v + t ,i,-1,"ver_wall", self.count[i], -1))
-        self.particle_collisions(i,t)
-        
-        #for j in range(np.size(pair_T)):
-            #heapq.heappush(self.events,Event(pair_T[j] + t ,i,J[j],"pair",self.count[j], self.count[J[j]]))
+        heapq.heappush(self.events, Event(wall_h + t ,i,-1,"hor_wall", self.count[i], -1))
+        heapq.heappush(self.events, Event(wall_v + t ,i,-1,"ver_wall", self.count[i], -1))
+        #self.particle_collisions(i,t)
+        self.particle_collision_time(i,t)
             
     
     def new_velocities(self,event):
@@ -259,7 +259,7 @@ class Ensemble:
         
         progress_bar = tqdm(total = int(T/dt))
 
-        self.E = np.zeros(int(T/dt) + 1)
+        self.E = np.zeros(int(T/dt))
 
         it = 0
         
@@ -280,7 +280,7 @@ class Ensemble:
                     break
 
 
-                while t_save + dt < current.time:
+                while t_save + dt < time:
                     
                     time_step = t_save + dt - t
                     progress_bar.update(1)
@@ -308,7 +308,8 @@ class Ensemble:
                 else:
                     self.count[current.i] += 1
                     self.next_collision(current.i,t)
-                
+
+        self.E = self.E[:it]
         progress_bar.close()
 
     def simulate_savefigs(self,T,dt, verbose = False):
@@ -319,11 +320,11 @@ class Ensemble:
         self.start_simulation()
         self.count = np.zeros(self.N) # reset time
         
-        progress_bar = tqdm(total = int(T * 100))
+        progress_bar = tqdm(total = int(T/dt))
 
         it = 0
 
-        self.E = np.zeros(int(T/dt) + 2, dtype = np.float64)
+        self.E = np.zeros(int(T/dt) + 1, dtype = np.float64)
         
         while t < T:
             # popping the earliest event
@@ -336,8 +337,6 @@ class Ensemble:
                 
                 time = current.time
                 
-                progress_bar.update(int(100 * (time - t)))
-                
                 if verbose:
                     print(current)
                     print(it)
@@ -345,7 +344,7 @@ class Ensemble:
                 while t_2 + dt < current.time:
                     
                     time_step = t_2 + dt - t
-                    
+                    progress_bar.update(1)
                     self.particles[:2,:] += time_step * self.particles[2:,:] # move all particles forward
                     self.plot_positions("/home/sondre/Pictures/figs_simulation/img{0:0=3d}.png".format(it))
                     self.E[it] = self.total_energy()
