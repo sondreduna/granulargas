@@ -33,7 +33,7 @@ plt.rcParams.update(newparams)
 def boltzmann_dist(kT,m,v):
     return m*v/kT * np.exp(- m * v**2 /(2*kT))
 
-def _plot_velocity_distribution(ensemble,kT,title,savefig = "", compare = False):
+def _plot_velocity_distribution(ensemble,title,savefig = "", compare = False):
 
     v_abs = np.sqrt(ensemble.get_v_square())
 
@@ -46,6 +46,7 @@ def _plot_velocity_distribution(ensemble,kT,title,savefig = "", compare = False)
     if compare:
 
         v = np.linspace(0,np.max(v_abs),1000)
+        kT = ensemble.kT()
         
         plt.plot(v,boltzmann_dist(kT,ensemble.M[0],v),
                  label = r"$p(v) = \frac{mv}{kT} \exp{\left(-\frac{m v^2}{2kT}\right)}$",

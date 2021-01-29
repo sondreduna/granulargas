@@ -114,8 +114,8 @@ class Ensemble:
     def plot_positions(self,savefig = ""):
         plotting._plot_positions(self,savefig)
 
-    def plot_velocity_distribution(self,kT, title, savefig= "", compare = False):
-        plotting._plot_velocity_distribution(self,kT,title,savefig,compare)
+    def plot_velocity_distribution(self, title, savefig= "", compare = False):
+        plotting._plot_velocity_distribution(self,title,savefig,compare)
 
     def plot_energy(self, savefig = ""):
         plotting._plot_energy(self,savefig)
