@@ -4,11 +4,12 @@ import matplotlib as mpl
 from matplotlib import rc
 import heapq
 from prettytable import PrettyTable
-from tqdm import tqdm
 import numba as nb
 from numba import types
 import plotting 
 
+
+from utils import * 
 
 # default mass value
 M = 10
@@ -98,75 +99,41 @@ class Event:
             return (count[self.i] == self.count_i) and (count[self.j] == self.count_j) and self.time > 0
         else:
             return (count[self.i] == self.count_i) and self.time > 0
-
-
-class StopCriterion:
-    """
-    Abstract class for a stop criterion.
-
-    Attributes
-    ----------
-    compare_val : undef 
-    	value used for the comparison in stop(val)
-    
-
-    Methods
-    -------
-    stop(val)						
-	function for stopping based on the type of 
-        stop criterion
-    """
-    def __init__(self,compare_val):
-        self.compare_val = compare_val
-    
-    def stop(self,val):
-        raise NotImplementedError
-
-class StopAtTime(StopCriterion):
-
-    """
-    Stop criterion, stopping when a time t has surpassed a
-    given max-time
-
-    """
-
-    def stop(self,ensemble):
-        return ensemble.t > self.compare_val
-
-class StopAtEquilibrium(StopCriterion):
-
-    """
-    Stop criterion, stopping when the average number of collision
-    per particle has surpassed a given number >> 1, default set to 100
-    """
-
-    def __init__(self,collision_max = 100):
-        super.__init__(collision_max)
-
-    def stop(self,ensemble):
-        return np.average(ensemble.count) > self.compare_val
-
 		
 class Ensemble:
     """
-    Wrapper for ensemble of particles
+    An ensemble of particles.
+
+    Attributes
+    ----------
     
+    radii : np.array(float)
+        List of radii of particles
+    N     : int 
+        Number of particles in gas
+    particles : np.array(float)
+        Positions and velocities of particles, i.e. particles[:,i] = [x_i,y_i,vx_i,vy_i]
+    count : np.array(int)
+        Count of number of collisions for each particle
+    M : np.array(float)
+        List of masses of particles
+    xi : float
+        restitution coefficient
+    events : heapq
+        Priority queue of Events  
+
+    Parameters
+    ----------
+    
+    N : int
+        Number of particles 
+    R : float
+        Initial set radius for all particles 
     
     """
     
     def __init__(self,N,R = 0.01):
-        """
-        Setting the positions of N particles inside a square
-        box of lengths 1 randomly according to U(0,1), and
-        velocities to 0
-        
-        Parameters
-        ----------
-        
-        N : int
-            number of particles in ensemble
-        
-        """
+       
         self.radii = np.full(N,R)
         self.N = N
         
@@ -483,7 +450,7 @@ class Ensemble:
                 # TODO: get rid of the if-check using a new type
 
                
-                elif stopper == "equilibrium":            
+                if stopper == "equilibrium":            
                     progress_bar.update(total_count/self.N - np.average(self.count))
         
                 # moves forward dt to have outputs at equidistant points in time
@@ -527,22 +494,42 @@ class Ensemble:
             return self.particles[2:,:]
 
     def simulate_savefigs(self,T,dt, verbose = False):
+        """
+        Simulates the system up to a time T, and saves a snapshot of 
+        the particles' positions at every timestep dt.
+
+        Parameters
+        ----------
+        T : float
+            end time
+        dt : float
+            time step
+        verbose : boolean
+            True  = prints the current event for each step. Only for debugging purposes.
+            False = does not print anything
+     
+        """
+
+        self.stop_criterion = StopAtTime(T)
         
-        t = 0.0
-        t_2 = 0.0
+        self.t = 0.0
+        t_save = 0.0
         
         self.start_simulation()
         self.count = np.zeros(self.N) # reset time
         self.v_0 = self.particles[2:,0]
         
-        progress_bar = tqdm(total = int(T/dt))
+        progress_bar = tqdm(total = T )
 
         it = 0
 
+        # When restricting to a sum up to T, we know exactly how long E should be
         self.E = np.zeros(int(T/dt) + 1, dtype = np.float64)
         
-        while t < T:
+        while not self.stop_criterion.stop(self):
+            
             # popping the earliest event
+            
             current = heapq.heappop(self.events)
 
             # checking whether the ith or jth particle of this event has
@@ -555,17 +542,20 @@ class Ensemble:
                 if verbose:
                     print(current)
                     print(it)
+
+
+                # moves forward dt to have outputs at equidistant points in time
+                while t_save + dt < current.time:
                     
-                while t_2 + dt < current.time:
+                    time_step = t_save + dt - self.t
+                    progress_bar.update(dt)
                     
-                    time_step = t_2 + dt - t
-                    progress_bar.update(1)
                     self.particles[:2,:] += time_step * self.particles[2:,:] # move all particles forward
                     self.plot_positions("/home/sondre/Pictures/figs_simulation/img{0:0=3d}.png".format(it))
                     self.E[it] = self.total_energy()
                     it += 1
-                    t_2 += dt
-                    t = t_2
+                    t_save += dt
+                    self.t = t_save
                 
                 if time == np.inf:
                     break
@@ -573,20 +563,20 @@ class Ensemble:
                 # updating the time of the last collision of the particles
                 # involved in the collision
                 
-                self.particles[:2,:] += (time - t) * self.particles[2:,:] # move all particles
+                self.particles[:2,:] += (time - self.t) * self.particles[2:,:] # move all particles
                 self.new_velocities(current)         # setting new velocities
 
                 # self.particles = np.around(self.particles,13) # rounding positions and velocities to 13 digits
                 
-                t = time                             # updating the time
+                self.t = time                        # updating the time
                 
                 if current.event_type == "pair":     # collision between a pair of particles
                     self.count[[current.i,current.j]] += 1
-                    self.next_collision(current.i,t)
-                    self.next_collision(current.j,t)
+                    self.next_collision(current.i,self.t)
+                    self.next_collision(current.j,self.t)
                 else:
                     self.count[current.i] += 1
-                    self.next_collision(current.i,t)
+                    self.next_collision(current.i,self.t)
 
         self.E = self.E[:it]
         progress_bar.close()

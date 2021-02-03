@@ -73,7 +73,7 @@ def constant_energy_check(N,T):
 
     collection.set_velocities(np.random.random((2,N))) 
 
-    collection.simulate(T)
+    collection.simulate(ret_vels = False)
     collection.plot_energy("/home/sondre/Pictures/figs_simulation/energy.pdf")
 
     print(collection.E)
@@ -99,7 +99,7 @@ def test_vel_dist(N,T):
     
     collection.set_velocities(v)
 
-    collection.simulate(T)
+    collection.simulate()
 
     collection.plot_velocity_distribution(r"\textbf{Final distribution}", "../fig/dist.pdf",compare = True)
     
