@@ -50,28 +50,33 @@ plt.rcParams.update(newparams)
 ```
 
 ```python
-v_1 = np.random.random((2,10000))
-v_2 = np.random.random((2,10000))
+m = 1
+M = 25
+r = 0.01
+R = 0.05
+
+x = np.arange(r,1-r,3*r)
+y = np.arange(r,(1-r)/2,3*r)
 ```
 
 ```python
-%timeit v_1 * v_2
+np.size(x)*np.size(y) + 1
 ```
 
 ```python
-%timeit np.einsum('ij,ij->i',v_1,v_2)
+xx,yy = np.meshgrid(x,y)
 ```
 
 ```python
-%timeit np.multiply(v_1,v_2)
+P = np.zeros((2,np.size(x)*np.size(y) + 1))
 ```
 
 ```python
-%timeit np.sum(v_1 * v_2, axis = 0)
+for i in range(np.size(x)):
 ```
 
 ```python
-np.einsum('ij,ij->j',v_1,v_2)
+plt.plot(y,"bo");
 ```
 
 ```python
@@ -125,7 +130,7 @@ collection.simulate(1000,True)
 ```
 
 ```python
-N = 50
+N = 100
 ```
 
 ```python
@@ -133,7 +138,7 @@ collection = Ensemble(N, 0.01)
 ```
 
 ```python
-v_0 = 5
+v_0 = 1
 
 theta = np.random.random(N) * np.pi * 2
 
@@ -146,11 +151,11 @@ collection.plot_positions()
 ```
 
 ```python
-collection.plot_velocity_distribution(r"\textbf{Initial distribution}")
+%load_ext memory_profiler
 ```
 
 ```python
-collection.simulate(100,True)
+%mprun collection.simulate(100)
 ```
 
 ```python
@@ -159,6 +164,55 @@ collection.plot_velocity_distribution(r"\textbf{Final distribution}",compare = T
 
 ```python
 collection.particles[:2,:]
+```
+
+```python
+v = np.random.random((2,10000))
+a = np.random.random(2)
+```
+
+```python
+b_1 = np.sum(v,)
+```
+
+```python
+b_2 = v - np.reshape(a,(2,1))
+```
+
+```python
+b_1 == b_2
+```
+
+```python
+N = 10
+```
+
+```python
+from problems import *
+```
+
+```python
+crater()
+```
+
+```python
+m = 1
+M = 10
+r = 0.005
+R = 0.05
+
+x = np.arange(3/2 * r,1 - 3/2 * r, 3 * r )
+y = np.arange(3/2 * r,(1 - 3/2 * r)/4, 3 * r )
+
+xx,yy = np.meshgrid(x,y)
+```
+
+```python
+xx
+```
+
+```python
+yy
 ```
 
 ```python
