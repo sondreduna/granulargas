@@ -12,7 +12,7 @@ import seaborn as sns
 rc("text",usetex = True)
 rc("font",family = "sans-serif")
 
-fontsize = 22
+fontsize = 25
 newparams = {'axes.titlesize': fontsize,
              'axes.labelsize': fontsize,
              'ytick.labelsize': fontsize,

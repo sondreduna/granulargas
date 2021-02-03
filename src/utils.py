@@ -42,7 +42,7 @@ class StopAtEquilibrium(StopCriterion):
     """
 
     def __init__(self,collision_max = 100):
-        super.__init__(collision_max)
+        super().__init__(collision_max)
 
     def stop(self,ensemble):
         return np.average(ensemble.count) > self.compare_val
@@ -57,7 +57,7 @@ class ProgressBar(tqdm):
     """
 
     def __init__(self,stopper,stop_val):
-        super.__init__(total = stop_val)
+        super().__init__(total = stop_val)
 
     def update(self,val):
         raise NotImplementedError 

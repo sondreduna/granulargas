@@ -448,10 +448,10 @@ class Ensemble:
 
                 # updates progress-bar
                 # TODO: get rid of the if-check using a new type
-
                
                 if stopper == "equilibrium":            
-                    progress_bar.update(total_count/self.N - np.average(self.count))
+                    progress_bar.update(np.average(self.count) - total_count/self.N )
+                    total_count = np.sum(self.count) # NB this is probably very inefficient
         
                 # moves forward dt to have outputs at equidistant points in time
                 while t_save + dt < time:
@@ -481,11 +481,11 @@ class Ensemble:
                     self.count[[current.i,current.j]] += 1
                     self.next_collision(current.i,self.t)
                     self.next_collision(current.j,self.t)
-                    total_count += 2
+                    
                 else:
                     self.count[current.i] += 1
                     self.next_collision(current.i,self.t)
-                    total_count += 1 
+
 
         self.E = np.array(self.E)
         progress_bar.close()

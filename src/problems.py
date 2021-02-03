@@ -3,6 +3,8 @@ from events import *
 from plotting import *
 import time as time
 
+from scipy.stats import gaussian_kde
+
 def test_function(N):
 
     x = np.random.random((2,N))
@@ -20,34 +22,35 @@ def problem_1(v_0,N,T,seed = 42):
     
     ensemble.set_velocities(v)
 
-    ensemble.simulate(T, dt = 1)
+    ensemble.simulate(dt = 1,stopper = "equilibrium",stop_val = 50)
     kT = ensemble.kT()
-    return ensemble
+    return ensemble, v
     
 def problem_1_simple(v_0, N = 2000, T = 100):
 
-    ensemble = problem_1(v_0,N,T)
+    ensemble, v = problem_1(v_0,N,T)
 
     ensemble.plot_velocity_distribution(r"\textbf{Final distribution}",
                                         "../fig/dist.pdf",
                                         compare = True)
-
+    deviation_plot(ensemble)
+    
 def problem_1_plot(ensemble):
 
-    fig, ax = plt.subplots(ncols = 2, figsize = (22,7))
+    fig, ax = plt.subplots(ncols = 2, figsize = (20,7))
 
-    v_0 = ensemble.v_0
-    v_abs   = np.sqrt(ensemble.get_v_square())
+    v_0     = ensemble.v_0
     v_0_abs = np.sqrt(np.einsum('ij,ij->j',v_0,v_0))
-    
+    v_abs   = np.sqrt(ensemble.get_v_square())
+        
     v = np.linspace(0,np.max(v_abs),1000)
     kT = ensemble.kT()
 
     xlim = [np.min(v_abs), np.max(v_abs)]
     
     ax[0].set_title(r"Initial velocity distribution")
-    
-    sns.histplot(v_0_abs,stat = "density", color = "blue", ax = ax[0])
+    v_0_abs[0] *= 2  # hacky solution to make the histplot work
+    sns.histplot(v_0_abs,stat = "density", color = "blue", ax = ax[0], edgecolor = None)
     ax[0].grid(ls = "--")
     ax[0].set_xlabel(r"$v$")
     ax[0].set_ylabel(r"Particle density")
@@ -56,7 +59,7 @@ def problem_1_plot(ensemble):
 
     ax[1].set_title(r"Final velocity distribution")
 
-    sns.histplot(v_abs, stat = "density", color = "blue", ax = ax[1])
+    sns.histplot(v_abs, stat = "density", color = "blue", ax = ax[1],edgecolor = None)
     ax[1].plot(v,boltzmann_dist(kT,ensemble.M[0],v),
              label = r"$p(v) = \frac{mv}{kT} \exp{\left(-\frac{m v^2}{2kT}\right)}$",
              color = "black",
@@ -78,11 +81,19 @@ def deviation_plot(ensemble):
     fig = plt.figure()
 
     v_abs = np.sqrt(ensemble.get_v_square())
+    v = np.linspace(np.min(v_abs),np.max(v_abs),1000)
 
-    ax = sns.histplot(v_abs,stat = "density", color = "blue")
+    kernel = gaussian_kde(v_abs)
 
-    
-    
+    fig = plt.figure()
+    plt.plot(v,np.abs(kernel(v) - boltzmann_dist(ensemble.kT(),ensemble.M[0],v)), label = r"$|p(v) - \hat{p}(v)|$")
+
+    plt.xlabel(r"$v$")
+    plt.ylabel(r"$\texttt{err}$")
+
+    plt.legend()
+    plt.tight_layout()
+    fig.savefig("../fig/kde_diff.pdf")
     
 def problem_1_para(v_0,N = 2000,T = 100):
 
@@ -93,12 +104,13 @@ def problem_1_para(v_0,N = 2000,T = 100):
 
     sum_ensemble = Ensemble(1)
     sum_ensemble.N = 8*N
-    sum_ensemble.M = np.full(8*N,answers[0].M[0])
+    sum_ensemble.M = np.full(8*N,answers[0][0].M[0])
 
-    sum_ensemble.v_0       = np.concatenate([answers[i].v_0 for i in range(8)], axis = 1)
-    sum_ensemble.particles = np.concatenate([answers[i].particles for i in range(8)], axis = 1)
+    sum_ensemble.v_0       = np.concatenate([answers[i][1] for i in range(8)], axis = 1)
+    sum_ensemble.particles = np.concatenate([answers[i][0].particles for i in range(8)], axis = 1)
 
     problem_1_plot(sum_ensemble)
+    deviation_plot(sum_ensemble)
 
 
     
