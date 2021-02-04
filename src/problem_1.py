@@ -5,14 +5,7 @@ import time as time
 
 from scipy.stats import gaussian_kde
 
-def test_function(N):
-
-    x = np.random.random((2,N))
-    y = np.random.random((2,N))
-    np.einsum('ij,ij->j',x,y)
-
-
-def problem_1(v_0,N,T,seed = 42):
+def problem_1(v_0,N,seed = 42):
 
     np.random.seed(seed)
     
@@ -23,12 +16,12 @@ def problem_1(v_0,N,T,seed = 42):
     ensemble.set_velocities(v)
 
     ensemble.simulate(dt = 1,stopper = "equilibrium",stop_val = 50)
-    kT = ensemble.kT()
+
     return ensemble, v
     
-def problem_1_simple(v_0, N = 2000, T = 100):
+def problem_1_simple(v_0, N = 2000):
 
-    ensemble, v = problem_1(v_0,N,T)
+    ensemble, v = problem_1(v_0,N)
 
     ensemble.plot_velocity_distribution(r"\textbf{Final distribution}",
                                         "../fig/dist.pdf",
@@ -83,23 +76,26 @@ def deviation_plot(ensemble):
     v_abs = np.sqrt(ensemble.get_v_square())
     v = np.linspace(np.min(v_abs),np.max(v_abs),1000)
 
-    kernel = gaussian_kde(v_abs)
+    kernel = gaussian_kde(v_abs,'scott')
 
     fig = plt.figure()
     plt.plot(v,np.abs(kernel(v) - boltzmann_dist(ensemble.kT(),ensemble.M[0],v)), label = r"$|p(v) - \hat{p}(v)|$")
 
+    plt.grid(ls = "--")
     plt.xlabel(r"$v$")
     plt.ylabel(r"$\texttt{err}$")
 
+    plt.yscale("log")
+    
     plt.legend()
     plt.tight_layout()
     fig.savefig("../fig/kde_diff.pdf")
     
-def problem_1_para(v_0,N = 2000,T = 100):
+def problem_1_para(v_0,N = 2000):
 
     pool = Pool()
 
-    results = [pool.apply_async(problem_1, [v_0,N,T,i]) for i in range(8)]
+    results = [pool.apply_async(problem_1, [v_0,N,i]) for i in range(8)]
     answers = [results[i].get(timeout = None) for i in range(8)]
 
     sum_ensemble = Ensemble(1)
@@ -113,7 +109,8 @@ def problem_1_para(v_0,N = 2000,T = 100):
     deviation_plot(sum_ensemble)
 
 
-    
+
+""" 
 def crater(N):
 
     r = np.sqrt(1/(4*(N-1)*np.pi))
@@ -138,3 +135,4 @@ def crater(N):
     ensemble.simulate_savefigs(1,0.01,False)
     #ensemble.simulate(1,0.05,False)
     ensemble.plot_positions("../fig/crater.pdf")
+"""

@@ -1,8 +1,8 @@
 The first test is devoted to investigating the distribution of the velocities of the particles after sufficiently long time. From statistical mechanics, we know that the velocities of a $2$-dimensional gas at equilibrium will distribute according to Maxwell's velocity distribution: 
-\[
+\begin{equation}\label{eq:maxwell}
 	p(v) = \frac{mv}{k_B T} \exp{\left(- \frac{mv^2}{2 k_B T}\right)},
-\]
-where $k_B$ is Boltzmann's constant, $T$ the absolute temperature, and $m$ the mass of the particles. It is essential that the all the particles have the same mass $m$, as will become apparent in section \ref{sec:mix1} and \ref{sec:mix2}.
+\end{equation}
+where $k_B$ is Boltzmann's constant, $T$ the absolute temperature, and $m$ the mass of the particles. It is evident that the particles will have to have the same mass for comparing with the known distribution in equation \ref{eq:maxwell}. The case of dissimilar masses is considered in section \ref{sec:mix1} and \ref{sec:mix2}.
 
 We initialise an system of particles with velocities $\mathbf{v} = [v_0 \cos{\theta} , v_0 \sin{\theta}]$ with $\theta \sim \U[0,2\pi]$. The initial distribution of the velocities is therefore $C\delta (v - v_0)$. After simulating the system until equilibrium is reached, i.e. the the average number of particle collision is $\gg 1$, the distribution is as shown in figure \ref{fig:dist_1}. For this simulation, the stop criterion used was that the average number of collisions surpassed $50$. Judging from the plot, it seems to be sufficient for equilibrium to be reached. 
 
