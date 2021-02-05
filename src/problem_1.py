@@ -15,7 +15,7 @@ def problem_1(v_0,N,seed = 42):
     
     ensemble.set_velocities(v)
 
-    ensemble.simulate(dt = 1,stopper = "equilibrium",stop_val = 50)
+    ensemble.simulate(dt = 1,stopper = "equilibrium",stop_val = 100)
 
     return ensemble, v
     

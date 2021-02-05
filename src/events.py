@@ -452,20 +452,21 @@ class Ensemble:
                 if stopper == "equilibrium":            
                     progress_bar.update(np.average(self.count) - total_count/self.N )
                     total_count = np.sum(self.count) # NB this is probably very inefficient
+                    self.E.append(self.total_energy())
         
                 # moves forward dt to have outputs at equidistant points in time
-                while t_save + dt < time:
+                if stopper == "time":
+                    while t_save + dt < time:
 
-                    if stopper == "time":
                         progress_bar.update(dt)
                     
-                    time_step = t_save + dt - self.t
+                        time_step = t_save + dt - self.t
                      
-                    self.particles[:2,:] += time_step * self.particles[2:,:] # move all particles forward
-                    self.E.append(self.total_energy())
+                        self.particles[:2,:] += time_step * self.particles[2:,:] # move all particles forward
+                        self.E.append(self.total_energy())
     
-                    t_save += dt
-                    self.t = t_save
+                        t_save += dt
+                        self.t = t_save    
 
                 # updating the time of the last collision of the particles
                 # involved in the collision
