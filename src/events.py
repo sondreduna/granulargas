@@ -455,6 +455,9 @@ class Ensemble:
                     self.E.append(self.total_energy())
         
                 # moves forward dt to have outputs at equidistant points in time
+                # don't want to bother with equidistant timesteps if the stop-criterion is
+                # of the 'equilibrium' type
+                
                 if stopper == "time":
                     while t_save + dt < time:
 
@@ -493,6 +496,112 @@ class Ensemble:
 
         if ret_vels:
             return self.particles[2:,:]
+
+    def simulate_saveE(self, dt = 0.1, stopper = "time", stop_val = 10, ret_vels = True):
+        
+        if stopper == "time":
+            self.stop_criterion = StopAtTime(stop_val)
+            
+        elif stopper == "equilibrium":
+            self.stop_criterion = StopAtEquilibrium(stop_val)
+
+
+        progress_bar = tqdm( total = stop_val )
+            
+        # Let the current time be a member of the object so that we can
+        # feed it into the stop criterion
+                                
+        self.t = 0.0 
+        t_save = 0.0
+        
+        self.count = np.zeros(self.N) # reset counts
+        self.start_simulation()       # does initial calculation of next collision
+
+        self.v_0 = self.particles[2:,:] # saving initial velocities
+        
+        # We don't know a priori how many iterations we are going to use
+        # so we will let the energy E be dynamically sized.
+                                
+        self.E = []
+        self.E_avg = [] 
+        total_count = 0
+        
+        while not self.stop_criterion.stop(self):
+            
+            # popping the earliest event
+
+            current = heapq.heappop(self.events)
+
+            # checking whether the ith or jth particle of this event has
+            # collided since the event was put in the queue
+            
+            if current.is_valid(self.count):
+                
+                time = current.time
+
+                # stops the loop if there is no next collision 
+                if time == np.inf:
+                    break
+
+                # updates progress-bar
+                # TODO: get rid of the if-check using a new type
+               
+                if stopper == "equilibrium":            
+                    progress_bar.update(np.average(self.count) - total_count/self.N )
+                    total_count = np.sum(self.count) # NB this is probably very inefficient
+                    self.E.append(self.total_energy())
+        
+                # moves forward dt to have outputs at equidistant points in time
+                # don't want to bother with equidistant timesteps if the stop-criterion is
+                # of the 'equilibrium' type
+            
+                while t_save + dt < time:
+
+                    progress_bar.update(dt)
+                    
+                    time_step = t_save + dt - self.t
+                     
+                    self.particles[:2,:] += time_step * self.particles[2:,:] # move all particles forward
+
+                    total_E = self.total_energy()
+                    self.E.append(total_E)
+                    
+                    vv = self.get_v_square()
+                    
+                    E_1 = 0.5 * self.M[0] * vv[self.M == self.M[0]]
+                    E_2 = 0.5 * 4 * self.M[0] * vv[self.M == 4* self.M[0]]
+                    
+                    self.E_avg.append([np.average(E_1),np.average(E_2), 1/self.N * total_E])
+    
+                    t_save += dt
+                    self.t = t_save    
+
+                # updating the time of the last collision of the particles
+                # involved in the collision
+
+                self.particles[:2,:] += (time - self.t) * self.particles[2:,:] # move all particles
+                self.new_velocities(current)         # setting new velocities
+                
+                self.t = time                        # updating the time
+
+                # finds the next collision of the involved particles
+                
+                if current.event_type == "pair":     # collision between a pair of particles
+                    self.count[[current.i,current.j]] += 1
+                    self.next_collision(current.i,self.t)
+                    self.next_collision(current.j,self.t)
+                    
+                else:
+                    self.count[current.i] += 1
+                    self.next_collision(current.i,self.t)
+
+
+        self.E = np.array(self.E)
+        self.E_avg = np.array(self.E_avg)
+        progress_bar.close()
+
+        if ret_vels:
+            return self.particles[2:,:]    
 
     def simulate_savefigs(self,T,dt, verbose = False):
         """

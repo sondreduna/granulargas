@@ -5,7 +5,7 @@ import time as time
 
 from scipy.stats import gaussian_kde
 
-def problem_1(v_0,N,seed = 42):
+def problem_1(v_0,N,count,seed = 42):
 
     np.random.seed(seed)
     
@@ -15,11 +15,11 @@ def problem_1(v_0,N,seed = 42):
     
     ensemble.set_velocities(v)
 
-    ensemble.simulate(dt = 1,stopper = "equilibrium",stop_val = 100)
+    ensemble.simulate(dt = 1,stopper = "equilibrium",stop_val = count)
 
     return ensemble, v
     
-def problem_1_simple(v_0, N = 2000):
+def problem_1_simple(v_0, N = 2000, count = 50):
 
     ensemble, v = problem_1(v_0,N)
 
@@ -91,11 +91,11 @@ def deviation_plot(ensemble):
     plt.tight_layout()
     fig.savefig("../fig/kde_diff.pdf")
     
-def problem_1_para(v_0,N = 2000):
+def problem_1_para(v_0,N = 2000, count = 50):
 
     pool = Pool()
 
-    results = [pool.apply_async(problem_1, [v_0,N,i]) for i in range(8)]
+    results = [pool.apply_async(problem_1, [v_0,N,count,i]) for i in range(8)]
     answers = [results[i].get(timeout = None) for i in range(8)]
 
     sum_ensemble = Ensemble(1)
