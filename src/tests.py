@@ -2,7 +2,7 @@ from events import *
 
 def one_particle_test_1():
 
-    collection = Ensemble(1)
+    collection = Gas(1)
 
     collection.particles[2:,0] = np.array([1,1])
 
@@ -12,7 +12,7 @@ def one_particle_test_1():
 
 def one_particle_test_2():
 
-    collection = Ensemble(1)
+    collection = Gas(1)
     collection.xi = 0
     collection.particles[2:,0] = np.array([1,1])
 
@@ -23,7 +23,7 @@ def one_particle_test_2():
 
 def two_particle_test_1():
 
-    collection = Ensemble(2)
+    collection = Gas(2)
 
     collection.particles[:2,0] = np.array([0.2,0.5])
     collection.particles[:2,1] = np.array([0.6,0.5])
@@ -37,7 +37,7 @@ def two_particle_test_1():
     
 def two_particle_test_2():
 
-    collection = Ensemble(2)
+    collection = Gas(2)
     collection.radii[0] = 0.02
     
     b = sum(collection.radii)/np.sqrt(2)
@@ -54,7 +54,7 @@ def two_particle_test_2():
 
 def two_particle_test_3():
 
-    collection = Ensemble(2)
+    collection = Gas(2)
     collection.xi = 0
 
     collection.particles[:2,0] = np.array([0.2,0.5])
@@ -69,7 +69,7 @@ def two_particle_test_3():
 
 def constant_energy_check(N,T):
 
-    collection = Ensemble(N, 0.001)
+    collection = Gas(N, 0.001)
 
     collection.set_velocities(10 * np.random.random((2,N))) 
 
@@ -80,7 +80,7 @@ def constant_energy_check(N,T):
 
 def many_particles_plot_test(N, T, verbose = True):
     
-    collection = Ensemble(N, 0.005)
+    collection = Gas(N, 0.005)
     collection.xi = 1
     collection.set_velocities(-5 + 10 * np.random.random((2,N)))
 
@@ -90,7 +90,7 @@ def many_particles_plot_test(N, T, verbose = True):
     
 def test_vel_dist(N,T):
 
-    collection = Ensemble(N,0.001)
+    collection = Gas(N,0.001)
 
     v_0 = 0.1
     
@@ -106,7 +106,7 @@ def test_vel_dist(N,T):
 
 def snooker():
 
-    board = Ensemble(11,0.01)
+    board = Gas(11,0.01)
 
     board.particles[:,0] = np.array([0.2,0.5,1,0])
 

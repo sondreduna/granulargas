@@ -1,32 +1,38 @@
 from events import *
 from plotting import *
+from multiprocessing import Pool
 
 def problem_3(v_0,N,count = 20,seed = 42, xi = 1, dt = 0.01):
 
     np.random.seed(seed)
 
-    ensemble = Ensemble(N,0.0005)
+    gas = Gas(N,0.0005)
     theta    = np.random.random(N) * 2 * np.pi
     v        = v_0 * np.array([np.cos(theta),np.sin(theta)])
 
-    ensemble.set_velocities(v)
-    ensemble.xi = xi
+    gas.set_velocities(v)
+    gas.xi = xi
     
     mid = N//2
-    ensemble.M[mid:] *= 4
+    gas.M[mid:] *= 4
 
-    ensemble.simulate_saveE(dt = 0.01, stopper = "equilibrium", stop_val = count )
+    gas.simulate_saveE(dt = 0.01, stopper = "equilibrium", stop_val = count )
 
-    return ensemble.E_avg
+    return gas.E_avg
 
-def problem_3_loop(v_0,N,count = 20, seed = 42, dt = 0.01):
+def problem_3_loop(v_0,N,count = 20, dt = 0.001):
 
-    E1 = problem_3(v_0,N,count,seed,1.,dt)
-    E2 = problem_3(v_0,N,count,seed,0.9,dt)
-    E3 = problem_3(v_0,N,count,seed,0.8,dt)
+    pool = Pool()
+    res1 = pool.apply_async(problem_3, [v_0,N,count,1,1.0,dt])
+    res2 = pool.apply_async(problem_3, [v_0,N,count,2,0.9,dt])
+    res3 = pool.apply_async(problem_3, [v_0,N,count,3,0.8,dt])
+
+    ans1 = res1.get(timeout = None)
+    ans2 = res2.get(timeout = None)
+    ans3 = res3.get(timeout = None)
     
-    problem_3_plot(E1,E2,E3,dt)    
-        
+    problem_3_plot(ans1,ans2,ans3,dt)
+
 def problem_3_plot(E1,E2,E3,dt):
 
     fig, ax = plt.subplots(nrows = 3, figsize = (13,18))
@@ -36,9 +42,9 @@ def problem_3_plot(E1,E2,E3,dt):
     T3 = np.arange(0,np.size(E3[:,0])) * dt
 
     ax[0].set_title(r"$\xi = 1.0$")
-    ax[0].plot(T1,E1[:,0], label =r"mass = $m$")
-    ax[0].plot(T1,E1[:,1], label =r"mass = $4m$")
-    ax[0].plot(T1,E1[:,2], label =r"All particles")
+    ax[0].plot(T1,E1[:,0], label =r"mass = $m$", color = "blue")
+    ax[0].plot(T1,E1[:,1], label =r"mass = $4m$", color = "red")
+    ax[0].plot(T1,E1[:,2], label =r"All particles", color = "green")
     ax[0].set_xlabel(r"$t$")
     ax[0].set_ylabel(r"$\left\langle T \right\rangle$")
     ax[0].set_yscale("log")
@@ -47,9 +53,9 @@ def problem_3_plot(E1,E2,E3,dt):
     plt.tight_layout()
 
     ax[1].set_title(r"$\xi = 0.9$")
-    ax[1].plot(T2,E2[:,0], label =r"mass = $m$")
-    ax[1].plot(T2,E2[:,1], label =r"mass = $4m$")
-    ax[1].plot(T2,E2[:,2], label =r"All particles")
+    ax[1].plot(T2,E2[:,0], label =r"mass = $m$", color = "blue")
+    ax[1].plot(T2,E2[:,1], label =r"mass = $4m$", color = "red")
+    ax[1].plot(T2,E2[:,2], label =r"All particles", color ="green")
     ax[1].set_xlabel(r"$t$")
     ax[1].set_ylabel(r"$\left\langle T \right\rangle$")
     ax[1].set_yscale("log")
@@ -58,9 +64,9 @@ def problem_3_plot(E1,E2,E3,dt):
     plt.tight_layout()
 
     ax[2].set_title(r"$\xi = 0.8$")
-    ax[2].plot(T3,E3[:,0], label =r"mass = $m$")
-    ax[2].plot(T3,E3[:,1], label =r"mass = $4m$")
-    ax[2].plot(T3,E3[:,2], label =r"All particles")
+    ax[2].plot(T3,E3[:,0], label =r"mass = $m$", color = "blue")
+    ax[2].plot(T3,E3[:,1], label =r"mass = $4m$", color = "red")
+    ax[2].plot(T3,E3[:,2], label =r"All particles", color = "green")
     ax[2].set_xlabel(r"$t$")
     ax[2].set_ylabel(r"$\left\langle T \right\rangle$")
     ax[2].set_yscale("log")

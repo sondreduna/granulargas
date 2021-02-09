@@ -31,8 +31,8 @@ class StopAtTime(StopCriterion):
 
     """
 
-    def stop(self,ensemble):
-        return ensemble.t > self.compare_val
+    def stop(self,gas):
+        return gas.t > self.compare_val
 
 class StopAtEquilibrium(StopCriterion):
 
@@ -44,8 +44,8 @@ class StopAtEquilibrium(StopCriterion):
     def __init__(self,collision_max = 100):
         super().__init__(collision_max)
 
-    def stop(self,ensemble):
-        return np.average(ensemble.count) > self.compare_val
+    def stop(self,gas):
+        return np.average(gas.count) > self.compare_val
 
 class ProgressBar(tqdm):
     """

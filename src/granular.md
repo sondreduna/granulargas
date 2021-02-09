@@ -84,6 +84,28 @@ from events import *
 ```
 
 ```python
+collection = Gas(1000,0.0005)
+collection.set_velocities(np.random.random((2,1000)))
+collection.simulate()
+```
+
+```python
+theta = np.random.random(1000)*2*np.pi
+v = np.array([np.cos(theta),np.sin(theta)])
+v2 = np.einsum('ij,ij->j',v,v)
+
+v2[0] *= v2[1]
+```
+
+```python
+sns.histplot(v2,stat="density")
+```
+
+```python
+v2 = collection
+```
+
+```python
 v = np.concatenate([collection1.particles[2:], collection2.particles[2:]],axis = 1)
 ```
 

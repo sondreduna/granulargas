@@ -6,7 +6,7 @@ def problem_2(v_0,N,count,seed = 42):
 
     np.random.seed(seed)
     
-    ensemble = Ensemble(N,0.0005)
+    gas = Gas(N,0.0005)
     theta = np.random.random(N) * 2 * np.pi
     v = v_0 * np.array([np.cos(theta),np.sin(theta)])
 
@@ -22,9 +22,9 @@ def problem_2(v_0,N,count,seed = 42):
 
 def problem_2_simple(v_0,N,count = 50):
 
-    ensemble, v = problem_2(v_0,N)
-    ensemble.v_0 = v
-    problem_2_plot(ensemble,ensemble.M[0])
+    gas, v = problem_2(v_0,N)
+    gas.v_0 = v
+    problem_2_plot(gas,gas.M[0])
 
 def problem_2_para(v_0,N,count = 50):
     
@@ -33,25 +33,25 @@ def problem_2_para(v_0,N,count = 50):
     results = [pool.apply_async(problem_2, [v_0,N,count,i]) for i in range(8)]
     answers = [results[i].get(timeout = None) for i in range(8)]
 
-    sum_ensemble           = Ensemble(1)
-    sum_ensemble.N         = 8*N
-    sum_ensemble.M         = np.concatenate([answers[i][0].M for i in range(8)], axis = 0)
-    sum_ensemble.v_0       = np.concatenate([answers[i][1] for i in range(8)], axis = 1)
-    sum_ensemble.particles = np.concatenate([answers[i][0].particles for i in range(8)], axis = 1)
+    sum_gas           = Gas(1)
+    sum_gas.N         = 8*N
+    sum_gas.M         = np.concatenate([answers[i][0].M for i in range(8)], axis = 0)
+    sum_gas.v_0       = np.concatenate([answers[i][1] for i in range(8)], axis = 1)
+    sum_gas.particles = np.concatenate([answers[i][0].particles for i in range(8)], axis = 1)
 
-    problem_2_plot(sum_ensemble,sum_ensemble.M[0])
+    problem_2_plot(sum_gas,sum_gas.M[0])
 
-def problem_2_plot(ensemble,m):
+def problem_2_plot(gas,m):
 
     fig, ax = plt.subplots(ncols = 2, figsize = (20,7))
 
-    v_0     = ensemble.v_0
+    v_0     = gas.v_0
     v_0_abs = np.sqrt(np.einsum('ij,ij->j',v_0,v_0))
-    v2      = ensemble.get_v_square() 
+    v2      = gas.get_v_square() 
     v_abs   = np.sqrt(v2)
 
-    light = ensemble.M == m
-    heavy = ensemble.M == 4*m
+    light = gas.M == m
+    heavy = gas.M == 4*m
 
     kT_l  = np.average( m/2 * v2[light] )
     kT_h  = np.average( 2 * m * v2[heavy] )

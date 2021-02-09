@@ -33,9 +33,9 @@ plt.rcParams.update(newparams)
 def boltzmann_dist(kT,m,v):
     return m*v/kT * np.exp(- m * v**2 /(2*kT))
 
-def _plot_velocity_distribution(ensemble,title,savefig = "", compare = False):
+def _plot_velocity_distribution(gas,title,savefig = "", compare = False):
 
-    v_abs = np.sqrt(ensemble.get_v_square())
+    v_abs = np.sqrt(gas.get_v_square())
 
     fig = plt.figure()
 
@@ -46,9 +46,9 @@ def _plot_velocity_distribution(ensemble,title,savefig = "", compare = False):
     if compare:
 
         v = np.linspace(0,np.max(v_abs),1000)
-        kT = ensemble.kT()
+        kT = gas.kT()
         
-        plt.plot(v,boltzmann_dist(kT,ensemble.M[0],v),
+        plt.plot(v,boltzmann_dist(kT,gas.M[0],v),
                  label = r"$p(v) = \frac{mv}{kT} \exp{\left(-\frac{m v^2}{2kT}\right)}$",
                  color = "black",
                  ls = "--")
@@ -64,18 +64,18 @@ def _plot_velocity_distribution(ensemble,title,savefig = "", compare = False):
     if savefig != "":
         fig.savefig(savefig)
 
-def _plot_positions(ensemble,savefig = ""):
+def _plot_positions(gas,savefig = ""):
         
 
     fig, ax = plt.subplots(figsize = (8,8))
     cm = plt.get_cmap("viridis")
     
-    for i in range(ensemble.N):
-        ax.add_artist(plt.Circle((ensemble.particles[0,i],
-                                ensemble.particles[1,i]),
-                                ensemble.radii[i],
+    for i in range(gas.N):
+        ax.add_artist(plt.Circle((gas.particles[0,i],
+                                gas.particles[1,i]),
+                                gas.radii[i],
                                 linewidth=0,
-                                color = cm(1/(1 + ensemble.count[i]))))
+                                color = cm(1/(1 + gas.count[i]))))
 
     # boundary of box
     plt.hlines([0,1],[0,0],[1,1], ls = "--", color = "black")
@@ -90,11 +90,11 @@ def _plot_positions(ensemble,savefig = ""):
 
         plt.close()
 
-def _plot_energy(ensemble, savefig = ""):
+def _plot_energy(gas, savefig = ""):
 
     fig = plt.figure()
 
-    plt.plot(ensemble.E)
+    plt.plot(gas.E)
     plt.xlabel("Time")
     plt.ylabel("Energy")
 

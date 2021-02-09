@@ -1,4 +1,48 @@
-In this section we briefly present how the algorithm is implemented and which considerations are put into the choices of data-structures.
+In this section we briefly present how the algorithm is implemented and which considerations are put into the choices of data-structures. The code is written in \texttt{python}.
 
+Although the main algorithm presented in the introduction \ref{sec:intro} invites to a fully object-oriented approach, I have chosen to restrain myself somewhat in that respect. 
+The main machinery of the code is collected in a class called \texttt{Gas}, which in essence is a collection of $N$ \texttt{particles} represented their coordinates in phase space, and various methods to manipulate the coordinates of each particle to simulate the gas' time evolution according to the algorithm in section \ref{sec:intro}. 
+The most prominent caveat preventing me from doing this is that it might affect the speed of the calculations.
+By choosing not to create separate object representing each particle, I found it very simple to move the particles at each time step and also accessing them by ordinary slicing and indexing of arrays. 
+Although it is possible to overload operators such that an array of self defined object can be added \textit{like} \texttt{numpy}-arrays, I found this to be impractically slow. 
+A quick test of adding the self-made particles compared to simply adding $4\times N$ arrays establishes this observation quite firmly. The listings below shows the time spent on adding two arrays of $50\,000$ particles with each of the mentioned methods.
 
-\subsection{Remarks on performance}
+\begin{lstlisting}
+>>>%time particles_array_1 += particles_array_2
+CPU times: user 443 us, sys: 101 us, total: 544 us
+Wall time: 306 us
+\end{lstlisting}
+
+\begin{lstlisting}
+>>>%time particles_class_1 += particles_class_2
+CPU times: user 34.1 ms, sys: 87 us, total: 34.2 ms
+Wall time: 33.2 ms
+\end{lstlisting}
+
+The code itself is well documented and should be easy to undestand on its own. However, I would like to point out some solutions that I found to work particularly well. The part of the code that undoubtedly is the most computationally heavy is the one devoted to calculating if and when the particles will collide with all others. The naive approach would be to iterate over each particle and do the calculation for each of them separately. In \texttt{python}, these kind of nested loops will often become impractically slow. I found considerable improvements through vectorising this calculation. 
+
+By essentially replacing the piece of calculation in \ref{lst:loop} by that in \ref{lst:vect} I was able to reduce one of the loops over all of the particles.
+
+\begin{lstlisting}{language=Python,caption= Loop over all particles.,label=lst:loop}
+for j in range(self.N):
+	delta_x = self.particles[:2,j] - self.particles[:2,i]
+	delta_v = self.particles[2:,j] - self.particles[2:,i]
+	R_ij    = self.radii[i] + self.radii[j]
+	d       = (delta_x @ delta_v)**2 - (delta_v @ delta_v) * ((delta_x @ delta_x) - R_ij**2)
+\end{lstlisting}
+
+\begin{lstlisting}{language=Python, caption= Vectorized calculation., label=lst:loop}
+mask = np.arange(self.N-1)
+mask[i:] += 1
+
+r_ij = self.radii[mask] + self.radii[i]
+
+delta_x = self.particles[:2,mask] - np.reshape(self.particles[:2,i],(2,1))
+delta_v = self.particles[2:,mask] - np.reshape(self.particles[2:,i],(2,1))
+
+vv = np.einsum('ij,ij->j',delta_v,delta_v)
+vx = np.einsum('ij,ij->j',delta_v,delta_x)
+xx = np.einsum('ij,ij->j',delta_x,delta_x)
+
+d = vx ** 2 - vv * ( xx - r_ij**2 )
+\end{lstlisting}

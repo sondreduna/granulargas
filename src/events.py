@@ -100,9 +100,9 @@ class Event:
         else:
             return (count[self.i] == self.count_i) and self.time > 0
 		
-class Ensemble:
+class Gas:
     """
-    An ensemble of particles.
+    A gas of particles.
 
     Attributes
     ----------
