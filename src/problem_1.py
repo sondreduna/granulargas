@@ -16,17 +16,15 @@ def problem_1(v_0,N,count,seed = 42):
     
     gas.set_velocities(v)
 
-    gas.simulate(dt = 0.005,stopper = "equilibrium",stop_val = count)
+    gas.simulate(dt = 0.01,stopper = "equilibrium",stop_val = count)
 
     return gas, v
     
 def problem_1_simple(v_0, N = 2000, count = 50,i = 0):
 
     gas, v = problem_1(v_0,N,count,int(i))
-
-    np.save(f"../data/prob1/speed_{i}.npy",gas.speeds)
-    np.save(f"../data/prob1/times_{i}.npy",gas.times)
-    np.save(f"../data/prob1/v_0_{i}",v)
+    vv = np.sqrt(np.einsum('ijk,ijk->ik',gas.speeds,gas.speeds))
+    np.save(f"../data/prob1/speed_{i}.npy",vv)
     
 def problem_1_plot(gas):
 

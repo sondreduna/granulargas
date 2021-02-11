@@ -10,22 +10,26 @@ def problem_2(v_0,N,count,seed = 42):
     theta = np.random.random(N) * 2 * np.pi
     v = v_0 * np.array([np.cos(theta),np.sin(theta)])
 
-    ensemble.set_velocities(v)
+    gas.set_velocities(v)
 
     # change the mass of half of the particles
     mid = N//2
-    ensemble.M[mid:] *= 4
+    gas.M[mid:] *= 4
 
-    ensemble.simulate(dt = 1,stopper = "equilibrium",stop_val = count)
+    gas.simulate(dt = 0.01, stopper = "equilibrium",stop_val = count)
     
-    return ensemble, v
+    return gas, v
 
-def problem_2_simple(v_0,N,count = 50):
+def problem_2_simple(v_0,N,count = 50, i = 0):
 
-    gas, v = problem_2(v_0,N)
+    gas, v = problem_2(v_0,N,count,int(i))
     gas.v_0 = v
-    problem_2_plot(gas,gas.M[0])
 
+    vv = np.sqrt(np.einsum('ijk,ijk->ik',gas.speeds,gas.speeds))
+    
+    np.save(f"../data/prob2/speedm_{i}.npy",vv[:,:N//2])
+    np.save(f"../data/prob2/speed4m_{i}.npy",vv[:,N//2:])
+    
 def problem_2_para(v_0,N,count = 50):
     
     pool = Pool()
@@ -144,3 +148,9 @@ def problem_2_plot(gas,m):
     text_file.write(table.get_string())
     text_file.close()
 
+import sys
+
+if __name__ == "__main__":
+    
+    label = sys.argv[1]
+    problem_2_simple(v_0 = 1, N = 4000, count = 50, i = label)

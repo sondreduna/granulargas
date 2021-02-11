@@ -1,4 +1,4 @@
-nnimport numpy as np 
+import numpy as np 
 import matplotlib.pyplot as plt 
 import matplotlib as mpl
 from matplotlib import rc
@@ -408,6 +408,14 @@ class Gas:
         elif stopper == "equilibrium":
             self.stop_criterion = StopAtEquilibrium(stop_val)
 
+        self.v_0 = self.particles[2:,:] # saving initial velocities
+        
+        # We don't know a priori how many iterations we are going to use
+        # so we will let the energy E be dynamically sized.
+                                
+        self.E = []
+        self.speeds = [np.copy(self.v_0)]
+        self.times  = [0]
 
         progress_bar = tqdm( total = stop_val )
             
@@ -419,15 +427,6 @@ class Gas:
         
         self.count = np.zeros(self.N) # reset counts
         self.start_simulation()       # does initial calculation of next collision
-
-        self.v_0 = self.particles[2:,:] # saving initial velocities
-        
-        # We don't know a priori how many iterations we are going to use
-        # so we will let the energy E be dynamically sized.
-                                
-        self.E = []
-        self.speeds = []
-        self.times  = []
 
         total_count = 0
         
