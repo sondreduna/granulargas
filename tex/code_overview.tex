@@ -1,7 +1,10 @@
-In this section we briefly present how the algorithm is implemented and which considerations are put into the choices of data-structures. The code is written in \texttt{python}.
+In this section I briefly present how the algorithm is implemented and which considerations are put into the choices of data-structures. The code is written in \texttt{python}.
 
+
+The main machinery of the code is collected in a class called \texttt{Gas} in \texttt{events.py}, which in essence is a collection of $N$ \texttt{particles} and various methods to manipulate the coordinates of each particle to simulate the gas' time evolution according to the algorithm in section \ref{sec:intro}.
+The particles are represented by their coordinates in the extended configuration space by their coordinates in the extended configuration space, that is their position and velocity.
 Although the main algorithm presented in the introduction \ref{sec:intro} invites to a fully object-oriented approach, I have chosen to restrain myself somewhat in that respect. 
-The main machinery of the code is collected in a class called \texttt{Gas}, which in essence is a collection of $N$ \texttt{particles} represented their coordinates in phase space, and various methods to manipulate the coordinates of each particle to simulate the gas' time evolution according to the algorithm in section \ref{sec:intro}. 
+For instance, I have chosen not to create an object representing a particle.
 The most prominent caveat preventing me from doing this is that it might affect the speed of the calculations.
 By choosing not to create separate object representing each particle, I found it very simple to move the particles at each time step and also accessing them by ordinary slicing and indexing of arrays. 
 Although it is possible to overload operators such that an array of self defined object can be added \textit{like} \texttt{numpy}-arrays, I found this to be impractically slow. 
@@ -19,11 +22,13 @@ CPU times: user 34.1 ms, sys: 87 us, total: 34.2 ms
 Wall time: 33.2 ms
 \end{lstlisting}
 
+The issue of finding the earliest event for each timestep is solved using a priority queue from the library \texttt{heapq} in \texttt{python}. This data structure allows for sorting any objects as long as they can be compared by the "less than"-operator. 
+
 The code itself is well documented and should be easy to undestand on its own. However, I would like to point out some solutions that I found to work particularly well. The part of the code that undoubtedly is the most computationally heavy is the one devoted to calculating if and when the particles will collide with all others. The naive approach would be to iterate over each particle and do the calculation for each of them separately. In \texttt{python}, these kind of nested loops will often become impractically slow. I found considerable improvements through vectorising this calculation. 
 
-By essentially replacing the piece of calculation in \ref{lst:loop} by that in \ref{lst:vect} I was able to reduce one of the loops over all of the particles.
+By essentially replacing the piece of calculation in listing \ref{lst:loop} by that in \ref{lst:vect} I was able to reduce one of the loops over all of the particles.
 
-\begin{lstlisting}{language=Python,caption= Loop over all particles.,label=lst:loop}
+\begin{lstlisting}[language=Python,caption= Loop over all particles.,label={lst:loop}]
 for j in range(self.N):
 	delta_x = self.particles[:2,j] - self.particles[:2,i]
 	delta_v = self.particles[2:,j] - self.particles[2:,i]
@@ -31,7 +36,7 @@ for j in range(self.N):
 	d       = (delta_x @ delta_v)**2 - (delta_v @ delta_v) * ((delta_x @ delta_x) - R_ij**2)
 \end{lstlisting}
 
-\begin{lstlisting}{language=Python, caption= Vectorized calculation., label=lst:loop}
+\begin{lstlisting}[language=Python, caption= Vectorized calculation., label={lst:vect}]
 mask = np.arange(self.N-1)
 mask[i:] += 1
 
@@ -45,4 +50,16 @@ vx = np.einsum('ij,ij->j',delta_v,delta_x)
 xx = np.einsum('ij,ij->j',delta_x,delta_x)
 
 d = vx ** 2 - vv * ( xx - r_ij**2 )
+\end{lstlisting}
+
+The calculation done in the simulation involves a bit more than this, but these blocks of code represents essentially all the calculation which is needed to determine if and when particle $i$ collides with any other particle. Putting these two calculations into two functions \texttt{loop()} and \texttt{vect()} and comparing the time spent shows that the latter is approximately $100$ times faster than the former, when doing a test on $50\,000$ particles. It should be noted however that the latter also requires a separate loop for pushing the new events into the queue, whereas the former does not. The speed-up is probably somewhat smaller than shown here.
+
+\begin{lstlisting}
+>>> %timeit loop()
+52.4 ms pm 260 us per loop (mean pm std. dev. of 7 runs, 10 loops each)
+\end{lstlisting}
+
+\begin{lstlisting}
+>>> %timeit vect()
+429 us pm 23.3 us per loop (mean pm std. dev. of 7 runs, 1000 loops each)
 \end{lstlisting}

@@ -84,9 +84,41 @@ from events import *
 ```
 
 ```python
-collection = Gas(1000,0.0005)
-collection.set_velocities(np.random.random((2,1000)))
-collection.simulate()
+N = 10000
+
+radii = np.ones(N)
+particles = np.random.random((4,N))
+i = 1
+
+def loop():
+    for j in range(N):
+        delta_x = particles[:2,j] - particles[:2,i]
+        delta_v = particles[2:,j] - particles[2:,i]
+        R_ij    = radii[i] + radii[j]
+        d       = (delta_x @ delta_v)**2 - (delta_v @ delta_v) * ((delta_x @ delta_x) - R_ij**2)
+        
+def vect():
+    mask = np.arange(N-1)
+    mask[i:] += 1
+
+    r_ij = radii[mask] + radii[i]
+
+    delta_x = particles[:2,mask] - np.reshape(particles[:2,i],(2,1))
+    delta_v = particles[2:,mask] - np.reshape(particles[2:,i],(2,1))
+
+    vv = np.einsum('ij,ij->j',delta_v,delta_v)
+    vx = np.einsum('ij,ij->j',delta_v,delta_x)
+    xx = np.einsum('ij,ij->j',delta_x,delta_x)
+
+    d = vx ** 2 - vv * ( xx - r_ij**2 )
+```
+
+```python
+%timeit loop()
+```
+
+```python
+%timeit vect()
 ```
 
 ```python

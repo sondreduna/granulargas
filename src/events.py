@@ -1,4 +1,4 @@
-import numpy as np 
+nnimport numpy as np 
 import matplotlib.pyplot as plt 
 import matplotlib as mpl
 from matplotlib import rc
@@ -425,7 +425,9 @@ class Gas:
         # We don't know a priori how many iterations we are going to use
         # so we will let the energy E be dynamically sized.
                                 
-        self.E = [] 
+        self.E = []
+        self.speeds = []
+        self.times  = []
 
         total_count = 0
         
@@ -452,24 +454,23 @@ class Gas:
                 if stopper == "equilibrium":            
                     progress_bar.update(np.average(self.count) - total_count/self.N )
                     total_count = np.sum(self.count) # NB this is probably very inefficient
-                    self.E.append(self.total_energy())
         
                 # moves forward dt to have outputs at equidistant points in time
-                # don't want to bother with equidistant timesteps if the stop-criterion is
-                # of the 'equilibrium' type
-                
-                if stopper == "time":
-                    while t_save + dt < time:
-
+   
+                while t_save + dt < time:
+                    if stopper == "time":
                         progress_bar.update(dt)
                     
-                        time_step = t_save + dt - self.t
+                    time_step = t_save + dt - self.t
                      
-                        self.particles[:2,:] += time_step * self.particles[2:,:] # move all particles forward
-                        self.E.append(self.total_energy())
-    
-                        t_save += dt
-                        self.t = t_save    
+                    self.particles[:2,:] += time_step * self.particles[2:,:] # move all particles forward
+
+                    self.E.append(self.total_energy())       # saving energies 
+                    self.speeds.append(np.copy(self.particles[2:,:])) # saving speeds
+                    self.times.append(self.t)                # saving current time
+                    
+                    t_save += dt
+                    self.t = t_save    
 
                 # updating the time of the last collision of the particles
                 # involved in the collision
@@ -492,6 +493,9 @@ class Gas:
 
 
         self.E = np.array(self.E)
+        self.speeds = np.array(self.speeds)
+        self.times  = np.array(self.times)
+        
         progress_bar.close()
 
         if ret_vels:
@@ -552,9 +556,6 @@ class Gas:
                     self.E.append(self.total_energy())
         
                 # moves forward dt to have outputs at equidistant points in time
-                # don't want to bother with equidistant timesteps if the stop-criterion is
-                # of the 'equilibrium' type
-            
                 while t_save + dt < time:
 
                     progress_bar.update(dt)

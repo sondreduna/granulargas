@@ -4,22 +4,22 @@ The central algorithm for event-driven simulations is the following \cite{event_
 
 \begin{algorithm}[H]
 	Set velocities and positions of all particles in the gas\;
-	Choose a stop criterion \;
+	Choose a stop criterion\;
 	\For{each particle in gas}{
-		Calculate if and when the particle will collide with all the other particles and the walls \;
+		Calculate if and when the particle will collide with all the other particles and the walls\;
 		Store all the collision times\;
 	}
 	\While{not reached stop criterion}{
-		Identify the earliest collision \;
+		Identify the earliest collision\;
 		
 		\eIf{collision is valid}{
-			Move all particles in straight lines until the earliset collision \;
+			Move all particles in straight lines until the earliset collision\;
 			\For{each particle involved in collision}{
-				Calculate if and when the particle will collide with all the other particles and the walls \;
+				Calculate if and when the particle will collide with all the other particles and the walls\;
 				Store all the collision times\;
 			} 
 		}{
-			discard collsion \;
+			Discard collsion\;
 		}
 	}
 	\caption{Event driven simulation of a gas.}
