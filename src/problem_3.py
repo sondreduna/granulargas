@@ -6,7 +6,7 @@ def problem_3(v_0,N,count = 20,seed = 42, xi = 1, dt = 0.01):
 
     np.random.seed(seed)
 
-    gas = Gas(N,0.0005)
+    gas      = Gas(N,0.001)
     theta    = np.random.random(N) * 2 * np.pi
     v        = v_0 * np.array([np.cos(theta),np.sin(theta)])
 
@@ -16,7 +16,7 @@ def problem_3(v_0,N,count = 20,seed = 42, xi = 1, dt = 0.01):
     mid = N//2
     gas.M[mid:] *= 4
 
-    gas.simulate_saveE(dt = 0.01, stopper = "equilibrium", stop_val = count )
+    gas.simulate_saveE(dt = dt, stopper = "equilibrium", stop_val = count )
 
     return gas.E_avg
 
@@ -76,8 +76,17 @@ def problem_3_plot(E1,E2,E3,dt):
     plt.tight_layout()
 
     plt.savefig("../fig/energy_avg.pdf")
-    
-    
-    
 
+import sys
     
+if __name__ == "__main__":
+
+    label = int(sys.argv[1])
+
+    E1 = problem_3(v_0 = 2,N = 4000, count = 20, seed = label, dt = 0.001, xi = 1)
+    E2 = problem_3(v_0 = 2,N = 4000, count = 20, seed = label, dt = 0.001, xi = 0.8)
+    E3 = problem_3(v_0 = 2,N = 4000, count = 20, seed = label, dt = 0.001, xi = 0.9)
+
+    np.save(f"../data/prob3/E1_{label}.npy",E1)
+    np.save(f"../data/prob3/E2_{label}.npy",E2)
+    np.save(f"../data/prob3/E3_{label}.npy",E3)        
