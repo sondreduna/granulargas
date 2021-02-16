@@ -47,17 +47,19 @@ class StopAtEquilibrium(StopCriterion):
     def stop(self,gas):
         return np.average(gas.count) > self.compare_val
 
-class ProgressBar(tqdm):
-    """
-    A progress-bar qustomized to the 
-    chosen stop criterion of the simulation 
-    
-    Not done with this yet.
+class StopAtDissipation(StopCriterion):
 
     """
+    Stop criterion, stopping when a given fraction of the initial energy
+    has dissipated. 
+    """
 
-    def __init__(self,stopper,stop_val):
-        super().__init__(total = stop_val)
+    def __init__(self,gas,energy_fraction = 0.5):
+        super().__init__(energy_fraction)
+        self.init_energy = gas.total_energy()
 
-    def update(self,val):
-        raise NotImplementedError 
+    def stop(self,gas):
+        self.current_energy = gas.total_energy()
+        assert(self.init_energy != 0)
+        return 1 - self.current_energy/self.init_energy > self.compare_val
+

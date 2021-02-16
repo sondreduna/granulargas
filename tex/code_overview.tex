@@ -1,7 +1,8 @@
 In this section I briefly present how the algorithm is implemented and which considerations are put into the choices of data-structures. The code is written in \texttt{python}.
 
 
-The main machinery of the code is collected in a class called \texttt{Gas} in \texttt{events.py}, which in essence is a collection of $N$ \texttt{particles} and various methods to manipulate the coordinates of each particle to simulate the gas' time evolution according to the algorithm in section \ref{sec:intro}.
+The main machinery of the code is collected in a class called \texttt{Gas} in \texttt{events.py}, which in essence is a collection of $N$ \texttt{particles} and various methods to manipulate the coordinates of each particle to simulate the gas' time evolution according to the algorithm in section \ref{sec:intro}
+The easiest way to simulate the system is to initialise the gas by calling the constructor with the argument $N$ giving the number of particles, setting the velocities by calling \texttt{gas.set\textunderscore velocities(v)} and subsequently \texttt{gas.simulate()}.
 The particles are represented by their coordinates in the extended configuration space by their coordinates in the extended configuration space, that is their position and velocity.
 Although the main algorithm presented in the introduction \ref{sec:intro} invites to a fully object-oriented approach, I have chosen to restrain myself somewhat in that respect. 
 For instance, I have chosen not to create an object representing a particle.
@@ -11,18 +12,22 @@ Although it is possible to overload operators such that an array of self defined
 A quick test of adding the self-made particles compared to simply adding $4\times N$ arrays establishes this observation quite firmly. The listings below shows the time spent on adding two arrays of $50\,000$ particles with each of the mentioned methods.
 
 \begin{lstlisting}
->>>%time particles_array_1 += particles_array_2
-CPU times: user 443 us, sys: 101 us, total: 544 us
-Wall time: 306 us
+%time particles_array_1 += particles_array_2
 \end{lstlisting}
+\texttt{\small
+CPU times: user 443 $\mu$s, sys: 101 $\mu$s, total: 544 $\mu$s
+Wall time: 306 $\mu$s
+}
 
 \begin{lstlisting}
->>>%time particles_class_1 += particles_class_2
-CPU times: user 34.1 ms, sys: 87 us, total: 34.2 ms
-Wall time: 33.2 ms
+%time particles_class_1 += particles_class_2
 \end{lstlisting}
+\texttt{\small
+CPU times: user 34.1 ms, sys: 87 $\mu$s, total: 34.2 ms
+Wall time: 33.2 ms
+}
 
-The issue of finding the earliest event for each timestep is solved using a priority queue from the library \texttt{heapq} in \texttt{python}. This data structure allows for sorting any objects as long as they can be compared by the "less than"-operator. 
+The issue of finding the earliest event for each timestep is solved using a priority queue from the library \texttt{heapq} in \texttt{python}. This data structure allows for sorting any objects as long as they can be compared by the "less than"-operator. I have therefore chosen to make a class called \texttt{Event} to store the necessary information about each collision, and use these in the queue.  
 
 The code itself is well documented and should be easy to undestand on its own. However, I would like to point out some solutions that I found to work particularly well. The part of the code that undoubtedly is the most computationally heavy is the one devoted to calculating if and when the particles will collide with all others. The naive approach would be to iterate over each particle and do the calculation for each of them separately. In \texttt{python}, these kind of nested loops will often become impractically slow. I found considerable improvements through vectorising this calculation. 
 
@@ -30,36 +35,76 @@ By essentially replacing the piece of calculation in listing \ref{lst:loop} by t
 
 \begin{lstlisting}[language=Python,caption= Loop over all particles.,label={lst:loop}]
 for j in range(self.N):
-	delta_x = self.particles[:2,j] - self.particles[:2,i]
-	delta_v = self.particles[2:,j] - self.particles[2:,i]
-	R_ij    = self.radii[i] + self.radii[j]
-	d       = (delta_x @ delta_v)**2 - (delta_v @ delta_v) * ((delta_x @ delta_x) - R_ij**2)
+	if i != j:
+		delta_x = self.particles[:2,j] - self.particles[:2,i]
+		delta_v = self.particles[2:,j] - self.particles[2:,i]
+		R_ij    = self.radii[i] + self.radii[j]
+		d       = (delta_x @ delta_v)**2 - (delta_v @ delta_v) * ((delta_x @ delta_x) - R_ij**2)
+		
+		if delta_v @ delta_x < 0 and d > 0:
+			new_t =  - (delta_v @ delta_x + np.sqrt(d))/(delta_v @ delta_v)
+			heapq.heappush(self.events, Event(new_t + t ,i,j,"pair",self.count[i], self.count[j]))
 \end{lstlisting}
 
 \begin{lstlisting}[language=Python, caption= Vectorized calculation., label={lst:vect}]
+T = np.full(self.N - 1, np.inf)
 mask = np.arange(self.N-1)
 mask[i:] += 1
 
 r_ij = self.radii[mask] + self.radii[i]
 
-delta_x = self.particles[:2,mask] - np.reshape(self.particles[:2,i],(2,1))
-delta_v = self.particles[2:,mask] - np.reshape(self.particles[2:,i],(2,1))
+delta_x = self.particles[:2,mask] - self.particles[:2,i][:,None]
+delta_v = self.particles[2:,mask] - self.particles[2:,i][:,None]
 
 vv = np.einsum('ij,ij->j',delta_v,delta_v)
 vx = np.einsum('ij,ij->j',delta_v,delta_x)
 xx = np.einsum('ij,ij->j',delta_x,delta_x)
 
 d = vx ** 2 - vv * ( xx - r_ij**2 )
+
+c_mask = (vx < 0 ) * (d > 0)
+
+T[c_mask] = - ( vx[c_mask] + np.sqrt(d[c_mask]) )/(vv[c_mask])
+
+T = T[c_mask]
+J = mask[c_mask]
+
+for j in range(np.size(T)):
+	heapq.heappush(self.events,Event(T[j] + t ,i,J[j],"pair",self.count[i], self.count[J[j]]))
 \end{lstlisting}
 
-The calculation done in the simulation involves a bit more than this, but these blocks of code represents essentially all the calculation which is needed to determine if and when particle $i$ collides with any other particle. Putting these two calculations into two functions \texttt{loop()} and \texttt{vect()} and comparing the time spent shows that the latter is approximately $100$ times faster than the former, when doing a test on $50\,000$ particles. It should be noted however that the latter also requires a separate loop for pushing the new events into the queue, whereas the former does not. The speed-up is probably somewhat smaller than shown here.
+Putting the central pieces\footnote{The \textit{central} part here is referring to line $1$ through $6$ in listing \ref{lst:loop} and line $1$ through $14$ in listing \ref{lst:vect}.} of each of these two calculations into two functions \texttt{loop()} and \texttt{vect()} and comparing the time spent shows that the latter is approximately $100$ times faster than the former, when doing a test on $50\,000$ particles. It should be noted however that the latter also requires a separate loop for pushing the new events into the queue, whereas the former does not. The speed-up is probably somewhat smaller than shown here.
 
 \begin{lstlisting}
->>> %timeit loop()
-52.4 ms pm 260 us per loop (mean pm std. dev. of 7 runs, 10 loops each)
+%timeit loop()
 \end{lstlisting}
+\texttt{\small
+52.4 ms $\pm$ 260 $\mu$s per loop (mean $\pm$ std. dev. of 7 runs, 10 loops each)
+}
 
 \begin{lstlisting}
->>> %timeit vect()
-429 us pm 23.3 us per loop (mean pm std. dev. of 7 runs, 1000 loops each)
+%timeit vect()
 \end{lstlisting}
+\texttt{\small
+429 $\mu$s $\pm$ 23.3 $\mu$s per loop (mean $\pm$ std. dev. of 7 runs, 1000 loops each)
+}
+
+
+Some explaination is probably appropriate for the somewhat cryptic \texttt{einsum}-function from \texttt{Numpy}. This function allows for writing sum operations on arrays using Einstein's summation convention. Once I have gotten used to the notation, I find it very readable. In addition it is very fast; the listed code in \ref{lst:einsum} below produces the following results: 
+
+\texttt{\small
+55.2 $\mu$s $\pm$ 364 ns per loop (mean $\pm$ std. dev. of 7 runs, 10000 loops each)
+}
+
+\texttt{\small 
+89.6 $\mu$s $\pm$ 4.78 $\mu$s per loop (mean $\pm$ std. dev. of 7 runs, 100000 loops each)
+}
+\begin{lstlisting}[language=Python,label={lst:einsum}]
+u = np.random.random((2,50000))
+v = np.random.random((2,50000))
+
+%timeit np.einsum('ij,ij->j',u,v)
+%timeit np.sum( u*v, axis = 0)
+\end{lstlisting}
+
+In this example I use the \texttt{einsum} function to what is more explicitly stated in the other code-line

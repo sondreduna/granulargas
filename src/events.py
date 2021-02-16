@@ -408,6 +408,9 @@ class Gas:
         elif stopper == "equilibrium":
             self.stop_criterion = StopAtEquilibrium(stop_val)
 
+        elif stopper == "dissipation":
+            self.stop_criterion = StopAtDissipation(self,stop_val)
+
         self.v_0 = self.particles[2:,:] # saving initial velocities
         
         # We don't know a priori how many iterations we are going to use
@@ -452,8 +455,12 @@ class Gas:
                
                 if stopper == "equilibrium":            
                     progress_bar.update(np.average(self.count) - total_count/self.N )
-                    total_count = np.sum(self.count) # NB this is probably very inefficient
-        
+                    total_count = np.sum(self.count) # NB this is probably very inefficient    
+
+                if stopper == "dissipation":
+                    new_val = 1 - self.stop_criterion.current_energy/self.stop_criterion.init_energy
+                    progress_bar.update(new_val - progress_bar.n)
+
                 # moves forward dt to have outputs at equidistant points in time
    
                 while t_save + dt < time:

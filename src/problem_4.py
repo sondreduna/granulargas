@@ -1,28 +1,116 @@
 from events import *
 from plotting import *
 
-def distribute_balls(N):
+def distribute_balls(N,max_iter = 10000):
 
     """
     Function for distributing balls in 
 
-    (x,y) \in [0,1] x [0,0.5]
+    (x,y) \in [0,1] x [0,0.5] with r removed from the boundaries
 
     """
 
     X = np.zeros((2,N))
-    r = 1/2 * np.sqrt(1/(np.pi*N))
+    r = (-1 + np.sqrt(np.pi*N))/(2*(N*np.pi - 1))
+
+    X[:,0] = np.array([np.random.uniform(r,1-r),
+                       np.random.uniform(r,0.5)])
     
-    for i in range(N):
-        X[:,i] = np.array([np.random.uniform(1.5*r,1-1.5*r),
-                           np.random.uniform(1.5*r,0.5-1.5*r)])
+    for i in range(1,N):
+        X[:,i] = np.array([np.random.uniform(r,1-r),
+                           np.random.uniform(r,0.5)])
 
         dists = np.sqrt(np.sum((X[:,:i] - X[:,i][:,None])**2, axis = 0))
-        
-        while np.size(dists[dists <= 2*r]) != 0:
-            X[:,i] = np.array([np.random.uniform(1.5*r,1-1.5*r),
-                           np.random.uniform(1.5*r,0.5-1.5*r)])
 
-    return X
+        it = 0
+        while np.size(dists[dists <= 2*r]) != 0:
+            X[:,i] = np.array([np.random.uniform(r,1-r),
+                               np.random.uniform(r,0.5)])
+            it+=1
+            dists = np.sqrt(np.sum((X[:,:i] - X[:,i][:,None])**2, axis = 0))
+            if it > max_iter:
+                print("Distribution of balls failed")
+                return X,r
+    return X,r 
     
+
+def crater_sim(N,xi = 0.5):
+
+    m = 1
+    M = 10
+
+    X,r = distribute_balls(N)
+    R = 5 * r 
+    
+    gas = Gas(N+1,r)
+    gas.radii[0] = R
+    gas.M[0] = M
+    gas.M[1:] = m
+    gas.xi = xi
+
+    gas.particles[:,0] = np.array([0.5,0.75,0,-5])
+    gas.particles[:2,1:] = X
+    
+    gas.simulate(dt = 1, stopper = "dissipation", stop_val = 0.9, ret_vels = False)
+    #gas.simulate_savefigs(1, 0.01, False)
+    gas.plot_positions("../fig/crater.pdf")
+    
+def crater(N,xi = 0.5,M = 25):    
+    m = 1
+    M = M
+
+    X,r = distribute_balls(N)
+    R = 5 * r 
+    
+    gas = Gas(N+1,r)
+    gas.radii[0] = R
+    gas.M[0] = M
+    gas.M[1:] = m
+    gas.xi = xi
+
+    gas.particles[:,0] = np.array([0.5,0.75,0,-5])
+    gas.particles[:2,1:] = X
+
+    gas.simulate(dt = 1, stopper = "dissipation", stop_val = 0.9, ret_vels = False)
+
+    # the positions of all the particles
+    x = gas.particles[:2,:]
+
+    # plot the distribution of particles, for debugging 
+    #gas.plot_positions("../fig/crater.pdf")
+
+    # number of particles involved in crater formation:  
+    affected = N -  np.count_nonzero( gas.count == 0 )
+    return affected
+
+def mass_scan(num_masses,min_mass = 1, max_mass = 25):
+    """
+    Scan over M masses
+
+    """
+
+    M = np.linspace(min_mass,max_mass,num_masses)
+    size = np.zeros(num_masses)
+
+    for i, m_i in enumerate(M):
+        size[i] = crater(1000,xi = 0.5, M = m_i)    
+
+    return M,size
+
+
+def problem_4_mass(num_masses):
+
+    M,size = mass_scan(num_masses)
+
+    fig = plt.figure()
+
+    plt.plot(M,size,label = r"$\mathcal{S}(m)$")
+    plt.xlabel(r"mass $m$")
+    plt.ylabel(r"Size of crater $\mathcal{S}$")
+
+    plt.legend()
+    plt.grid(ls = "--")
+    plt.tight_layout()
+
+    fig.savefig("../fig/mass_size.pdf")
 

@@ -167,34 +167,6 @@ def problem_1_dev(v_0,count = 50):
 
     fig.savefig("../fig/err.pdf")
 
-
-""" 
-def crater(N):
-
-    r = np.sqrt(1/(4*(N-1)*np.pi))
-    R = 5*r 
-
-    m = 1
-    M = 25
-
-    x = np.arange(1.5*r, 1 - 1.5*r,3*r)
-    y = np.arange(1.5*r, 0.5, 3*r)
-
-    nx = np.size(x)
-    ny = np.size(y)
-    
-    gas = Gas(N,r)
-    gas.radii[0] = R
-    gas.M[0] = M
-    gas.M[1:] = m
-    gas.xi = 1
-    gas.particles[:,0] = np.array([0.5,0.75,0,-5])
-    
-    gas.simulate_savefigs(1,0.01,False)
-    #gas.simulate(1,0.05,False)
-    gas.plot_positions("../fig/crater.pdf")
-"""
-
 import sys
 
 if __name__ == "__main__":
