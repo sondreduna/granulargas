@@ -34,10 +34,10 @@ def distribute_balls(N,max_iter = 10000):
     return X,r 
     
 
-def crater_sim(N,xi = 0.5):
+def crater_sim(N,xi = 0.5, M = 10, path = "../fig/crater.pdf"):
 
     m = 1
-    M = 10
+    M = M
 
     X,r = distribute_balls(N)
     R = 5 * r 
@@ -51,9 +51,9 @@ def crater_sim(N,xi = 0.5):
     gas.particles[:,0] = np.array([0.5,0.75,0,-5])
     gas.particles[:2,1:] = X
     
-    gas.simulate(dt = 1, stopper = "dissipation", stop_val = 0.9, ret_vels = False)
-    #gas.simulate_savefigs(1, 0.01, False)
-    gas.plot_positions("../fig/crater.pdf")
+    #gas.simulate(dt = 1, stopper = "dissipation", stop_val = 0.9, ret_vels = False)
+    gas.simulate_savefigs(1, 0.005, False)
+    gas.plot_positions(path)
     
 def crater(N,xi = 0.5,M = 25):    
     m = 1
@@ -83,7 +83,14 @@ def crater(N,xi = 0.5,M = 25):
     affected = N -  np.count_nonzero( gas.count == 0 )
     return affected
 
-def mass_scan(num_masses,min_mass = 1, max_mass = 25):
+def double_crater_test():
+    m1 = 5
+    m2 = 25
+
+    crater_sim(2000,M = m1,path = "../fig/crater_1.pdf")
+    crater_sim(2000,M = m2,path = "../fig/crater_2.pdf")
+
+def mass_scan(num_masses = 10,label = 0,min_mass = 1, max_mass = 25):
     """
     Scan over M masses
 
@@ -93,18 +100,21 @@ def mass_scan(num_masses,min_mass = 1, max_mass = 25):
     size = np.zeros(num_masses)
 
     for i, m_i in enumerate(M):
-        size[i] = crater(1000,xi = 0.5, M = m_i)    
+        size[i] = crater(2000,xi = 0.5, M = m_i)    
 
-    return M,size
+    np.save(f"../data/prob4/M_{label}.npy",M)
+    np.save(f"../data/prob4/size_{label}.npy",size)
 
 
-def problem_4_mass(num_masses):
+def problem_4_plot():
 
-    M,size = mass_scan(num_masses)
+    
+    M = np.mean([np.load(f"../data/prob4/M_{i}.npy") for i in range(1,9)], axis = 0)
+    size = np.mean([np.load(f"../data/prob4/size_{i}.npy") for i in range(1,9)], axis = 0)
 
     fig = plt.figure()
-
-    plt.plot(M,size,label = r"$\mathcal{S}(m)$")
+    
+    plt.plot(M,size,label = r"$\mathcal{S}(m)$", ls = "--", marker = "o", color ="blue")
     plt.xlabel(r"mass $m$")
     plt.ylabel(r"Size of crater $\mathcal{S}$")
 
@@ -113,4 +123,14 @@ def problem_4_mass(num_masses):
     plt.tight_layout()
 
     fig.savefig("../fig/mass_size.pdf")
+
+
+import sys
+
+if __name__ == "__main__":
+
+    label = int(sys.argv[1])
+    mass_scan(10,label,1,25)
+
+    
 

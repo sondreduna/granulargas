@@ -13,7 +13,7 @@ $$
 where, in order to avoid having particles outside the box, the area depends on $r$. If we clear a border of $r$ on the boundary of the region facing the walls, we get $r$ from solving
 
 \begin{equation}\label{eq:r}
-	N \pi r^2 = \frac{1}{2} (1- \frac{1}{2}2) (1-2r \quad \Rightarrow \quad r = \frac{-1 + \sqrt{N\pi}}{2(N\pi - 1)}.
+	N \pi r^2 = \frac{1}{2} \left(1- \frac{1}{2}r\right) \left(1-2r\right) \quad \Rightarrow \quad r = \frac{-1 + \sqrt{N\pi}}{2(N\pi - 1)}.
 \end{equation}
 
 To avoid having overlapping particles, I do the following
@@ -22,16 +22,36 @@ To avoid having overlapping particles, I do the following
 	Choose number of particles $N$\;
 	Find $r$ corresponding to $N$ from \eqref{eq:r}\;
 	$\mathbf{x} \gets [(0,0),\dots,(0,0)]$\;
-	$\mathbf{x}_0 \gets (x_i \sim \mathcal{U}_{[r,1-r]},y_i \sim \mathcal{U}_{[r,0.5]})$\;
+	Sample $x_i \sim \mathcal{U}_{[r,1-r]}$ and $y_i \sim \mathcal{U}_{[r,0.5]})$\;
+	$\mathbf{x}_0 \gets (x_i,y_i)$\;
 	\For{$i = 2\dots N$ }{
-		$\mathbf{x}_i \gets (x_i \sim \mathcal{U}_{[r,1-r]},y_i \sim \mathcal{U}_{[r,0.5]})$\;
+		Sample $x_i \sim \mathcal{U}_{[r,1-r]}$ and $y_i \sim \mathcal{U}_{[r,0.5]})$\;
+		$\mathbf{x}_i \gets (x_i,y_i)$\;
 	\While{Particle $i$ does not overlap with particle $1,\dots,i-1$}{
-		$\mathbf{x}_i \gets (x_i \sim \mathcal{U}_{[r,1-r]},y_i \sim \mathcal{U}_{[r,0.5]})$\;
+		Sample $x_i \sim \mathcal{U}_{[r,1-r]}$ and $y_i \sim \mathcal{U}_{[r,0.5]})$\;
+		$\mathbf{x}_i \gets (x_i,y_i)$\;
 	}}
-	\caption{Event driven simulation of a gas.}
+	\caption{Non-overlapping random placement of discs in rectangular region.}
 \end{algorithm}  
 
+\subsubsection{Illustration of crater formation}
 
+The plots in figures \ref{fig:crater_1} and \ref{fig:crater_2} shows the crater formed when the mass of the projectile is $5$ and $25$ times the mass of the particles in the bed, respectively. The darker the colour of the particles, the more collisions they have been involved in. Define the \textit{size of the crater}, $\mathcal{S}$, as the number of affected particles by the impact. That is, the number of particles moved during the impact. In the illustrations in figures \ref{fig:crater_1} and \ref{fig:crater_2} the size is the number of non-yellow particles. 
+
+\begin{figure}
+	\centering
+\begin{minipage}{0.48\columnwidth}
+		\includegraphics[width=\linewidth]{../fig/crater_1}
+		\captionof{figure}{Example of crater formation using a projectile mass $5$ times the mass of the remaining particles.}
+		\label{fig:crater_1}
+\end{minipage}
+\hfill
+\begin{minipage}{0.48\columnwidth}
+		\includegraphics[width=\linewidth]{../fig/crater_2}
+		\captionof{figure}{Example of crater formation using a projectile mass $25$ times the mass of the remaining particles.}
+		\label{fig:crater_2}
+\end{minipage}
+\end{figure}
 \subsubsection{Scanning over the projectile mass}
 
 By simulating crater formation with projectile masses running from $1$ to $25$ times the mass of the remaining particles, the size of the crater is as shown in figure \ref{fig:mass_size}. The size of the crater $\mathcal{S}$ is simply the number of particles involved in the crater formation. The plot clearly shows that a larger projectile mass gives rise to a larger crater, as one intuitively would expect. 
@@ -39,6 +59,6 @@ By simulating crater formation with projectile masses running from $1$ to $25$ t
 \begin{figure}
 	\centering
 	\includegraphics[width=\columnwidth]{../fig/mass_size}
-	\caption{Size of crater as a function of projectile mass.}
+	\caption{Size of crater as a function of projectile mass. The values are calculated from the mean of simulating projectile impact on $8$ ensembles of a bed of $2000$ particles.}
 	\label{fig:mass_size}
 \end{figure}
