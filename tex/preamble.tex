@@ -100,9 +100,6 @@
 \usepackage{titlesec}
 
 \usepackage{nameref}
-\makeatletter
-\newcommand*{\currentname}{\@currentlabelname}
-\makeatother
 
 \author{Sondre Duna Lundemo}
 
@@ -113,7 +110,7 @@
 \renewcommand{\headrulewidth}{0.5pt}
 \fancyhf{}
 \rhead{\textit{\fontfamily{cmr}\selectfont Sondre Duna Lundemo}}
-\lhead{\textsc{\currentname}}
+\lhead{\small \textsc{\rightmark}}
 \cfoot{\textemdash \, \thepage \, \textemdash}
 
 \titleformat*{\section}{\bfseries \Large}

@@ -22,7 +22,7 @@ We initialise an system of particles with velocities $\mathbf{v} = [v_0 \cos{\th
 %	\label{fig:dist_2}
 %\end{figure}
 
-To have a more quantitative measure of how good the fit is, divide the real line into $k$ intervals consider the normalized $\ell^1$-norm of the difference at each interval 
+To have a more quantitative measure of how good the fit is, divide the real line into $k$ intervals and consider the normalized $\ell^1$-norm of the difference at each interval 
 \begin{equation}\label{eq:err}
 	\texttt{err} = \frac{1}{2} \sum_{j=1}^{k} \rvert d_j - p_j\lvert,
 \end{equation}
@@ -30,7 +30,7 @@ where $d_j$ denotes the density of samples in interval $I_j$ and
 \[
 	p_j = \int_{I_j} p(v) \, \text{d}v
 \]
-is the probability that an observation falls into interval $I_j$. It is evident from equation \ref{eq:err} that $\texttt{err}\in [0,1]$. For the distribution shown in figure \ref{fig:dist_1} $\texttt{err} \approx  0.0078527$.
+is the probability that an observation falls into interval $I_j$. It is evident from equation \ref{eq:err} that $\texttt{err}\in [0,1]$. For the distribution shown in figure \ref{fig:dist_1} $\texttt{err} \approx  0.0078527$. This indicates a good fit with the known distribution.
 
 %This test is constructed as follows:
 %
