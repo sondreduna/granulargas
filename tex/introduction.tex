@@ -1,5 +1,3 @@
-An event driven approach is used to simulate a gas of hard discs in two dimensions. The framework built is used to study statistical properties of the gas at and towards equilibrium. The numerical results are compared with well known results from classical statistical mechanics. 
-
 The central algorithm for event-driven simulations is the following \cite{event_sim}:
 
 \begin{algorithm}[H]
@@ -25,4 +23,4 @@ The central algorithm for event-driven simulations is the following \cite{event_
 	\caption{Event driven simulation of a gas.}
 \end{algorithm}
 
-In the above algorithm, a collision is \textit{valid} if the particle(s) involved in the collision has \textit{not} collided since the time the collision time was stored. 
+In the above algorithm, a collision is marked \textit{valid} if the particle(s) involved in the collision has \textit{not} collided since the time the collision time was stored. 

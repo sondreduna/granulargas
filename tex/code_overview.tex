@@ -73,7 +73,7 @@ for j in range(np.size(T)):
 	heapq.heappush(self.events,Event(T[j] + t ,i,J[j],"pair",self.count[i], self.count[J[j]]))
 \end{lstlisting}
 
-Putting the central pieces\footnote{The \textit{central} part here is referring to line $1$ through $6$ in listing \ref{lst:loop} and line $1$ through $14$ in listing \ref{lst:vect}.} of each of these two calculations into two functions \texttt{loop()} and \texttt{vect()} and comparing the time spent shows that the latter is approximately $100$ times faster than the former, when doing a test on $50\,000$ particles. It should be noted however that the latter also requires a separate loop for pushing the new events into the queue, whereas the former does not. The speed-up is probably somewhat smaller than shown here.
+Putting the central pieces\footnote{The \textit{central} piece here is referring to line $1$ through $6$ in listing \ref{lst:loop} and line $1$ through $14$ in listing \ref{lst:vect}.} of each of these two calculations into two functions \texttt{loop()} and \texttt{vect()} and comparing the time spent shows that the latter is approximately $100$ times faster than the former, when doing a test on $50\,000$ particles. It should be noted however that the latter also requires a separate loop for pushing the new events into the queue, whereas the former does not. The speed-up is probably somewhat smaller than shown here.
 
 \begin{lstlisting}
 %timeit loop()
@@ -106,5 +106,3 @@ v = np.random.random((2,50000))
 %timeit np.einsum('ij,ij->j',u,v)
 %timeit np.sum( u*v, axis = 0)
 \end{lstlisting}
-
-In this example I use the \texttt{einsum} function to what is more explicitly stated in the other code-line

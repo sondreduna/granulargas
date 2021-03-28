@@ -43,7 +43,7 @@ def crater_sim(N,xi = 0.5, M = 10, path = "../fig/crater.pdf"):
     M = M
 
     X,r = distribute_balls(N)
-    R = 5 * r 
+    R = 20* r 
     
     gas = Gas(N+1,r)
     gas.radii[0] = R
@@ -55,7 +55,7 @@ def crater_sim(N,xi = 0.5, M = 10, path = "../fig/crater.pdf"):
     gas.particles[:2,1:] = X
     
     gas.simulate(dt = 1, stopper = "dissipation", stop_val = 0.9, ret_vels = False)
-    #gas.simulate_savefigs(1, 0.005, False)
+    #gas.simulate_savefigs(1, 0.005, verbose = False, videoname = "../fig/crater")
     gas.plot_positions(path)
     
 def crater(N,xi = 0.5,M = 25, v = 5):    

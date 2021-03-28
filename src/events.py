@@ -8,7 +8,6 @@ import numba as nb
 from numba import types
 import plotting 
 
-
 from utils import * 
 
 # default mass value
@@ -610,7 +609,12 @@ class Gas:
         if ret_vels:
             return self.particles[2:,:]    
 
-    def simulate_savefigs(self,T,dt, verbose = False):
+    def simulate_savefigs(self,
+                          T,
+                          dt,
+                          savepath = "/home/sondre/Pictures/figs_simulation/",
+                          verbose = False,
+                          videoname = None):
         """
         Simulates the system up to a time T, and saves a snapshot of 
         the particles' positions at every timestep dt.
@@ -621,9 +625,14 @@ class Gas:
             end time
         dt : float
             time step
+        savepath : string
+            Where to save pictures.
         verbose : boolean
             True  = prints the current event for each step. Only for debugging purposes.
             False = does not print anything
+        videoname : string
+            If None : don't make video
+            If a string, use as name for video being saved. Also deletes the pictures afterwards.
      
         """
 
@@ -668,7 +677,7 @@ class Gas:
                     progress_bar.update(dt)
                     
                     self.particles[:2,:] += time_step * self.particles[2:,:] # move all particles forward
-                    self.plot_positions("/home/sondre/Pictures/figs_simulation/img{0:0=3d}.png".format(it))
+                    self.plot_positions(savepath + "img{0:0=3d}.png".format(it)) 
                     self.E[it] = self.total_energy()
                     it += 1
                     t_save += dt
@@ -697,3 +706,9 @@ class Gas:
 
         self.E = self.E[:it]
         progress_bar.close()
+
+        # Save a video of the images
+        
+        if videoname != None:
+            create_video(savepath,videoname)
+            remove_pictures(savepath)

@@ -4,12 +4,12 @@ The first test is devoted to investigating the distribution of the velocities of
 \end{equation}
 where $k_B$ is Boltzmann's constant, $T$ the absolute temperature, and $m$ the mass of the particles. It is evident that the particles will have to have the same mass for comparing with the known distribution in equation \ref{eq:maxwell}. The case of dissimilar masses is considered in section \ref{sec:mix1} and \ref{sec:mix2}.
 
-We initialise an system of particles with velocities $\mathbf{v} = [v_0 \cos{\theta} , v_0 \sin{\theta}]$ with $\theta \sim \U[0,2\pi]$. The initial distribution of the velocities is therefore $\delta (v - v_0)$. After simulating the system until equilibrium is reached, i.e. the the average number of particle collision is $\gg 1$, the distribution is as shown in figure \ref{fig:dist_1}. For this simulation, the stop criterion used was that the average number of collisions surpassed $50$. To get a larger number of independent samples, I have used the speeds at $20$ different times in this simulation sampled such that all particles have collided a few times between each sample. 
+We initialise a system of $50\,000$ particles with velocities $\mathbf{v} = [v_0 \cos{\theta} , v_0 \sin{\theta}]$ with $\theta \sim \U[0,2\pi]$. The initial distribution of the velocities is therefore $\delta (v - v_0)$. After simulating the system until equilibrium is reached, i.e. the the average number of particle collision is $\gg 1$, the distribution is as shown in figure \ref{fig:dist_1}. For this simulation, the stop criterion used was that the average number of collisions surpassed $50$. To get a larger number of independent samples, I have used the speeds at different times in this simulation sampled such that all particles have collided a few times between each sample. Judging from the plot, the samples seem sufficiently independent as the distribution very well resembles the Maxwell-Boltzmann distribution.
 
 \begin{figure}[htb]
 	\centering
 	\includegraphics[width=\textwidth]{../fig/distribution}
-	\caption{Distribution of velocities in a gas of $50000$ particles.}
+	\caption{Distribution of velocities in a gas using $256\,000$ samples.}
 	\label{fig:dist_1}
 \end{figure}
 
@@ -30,7 +30,7 @@ where $d_j$ denotes the density of samples in interval $I_j$ and
 \[
 	p_j = \int_{I_j} p(v) \, \text{d}v
 \]
-is the probability that an observation falls into interval $I_j$. It is evident from equation \ref{eq:err} that $\texttt{err}\in [0,1]$. For the distribution shown in figure \ref{fig:dist_1} $\texttt{err} \approx  0.0078527$. This indicates a good fit with the known distribution.
+is the probability that an observation falls into interval $I_j$\footnote{There are many approaches to constructing such a measure. This one has the advantage that it ranges from $0$ to $1$, since the usual $\ell^1$ norm of the differences is in the worst case $2$ if the support of the theoretical and measured distribution are disjoint. A disadvantage is that it does not measure "closeness" in the usual \textit{least-square} sense, as the $\ell^2$ norm does.}. For the distribution shown in figure \ref{fig:dist_1} $\texttt{err} \approx  0.0078527$. This indicates a good fit with the known distribution.
 
 %This test is constructed as follows:
 %

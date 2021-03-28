@@ -1,5 +1,6 @@
 import numpy as np
 from tqdm import tqdm
+import os 
 
 class StopCriterion:
     """
@@ -63,3 +64,31 @@ class StopAtDissipation(StopCriterion):
         assert(self.init_energy != 0)
         return 1 - self.current_energy/self.init_energy > self.compare_val
 
+
+def create_video(savepath,videoname):
+    """
+    Function for creating video from saved images
+
+    Parameters
+    ----------
+    savepath : string
+        Path where images are saved
+    videoname : string
+        Title of video.
+
+    """
+
+    img_name = savepath + "img%03d.png"
+    os.system(f"ffmpeg -framerate 60 -i {img_name} {videoname}.mp4")
+
+def remove_pictures(path):
+    """
+    Function for removing saved images
+    
+    Parameters
+    ----------
+    path : string
+        Path where images are saved. 
+
+    """
+    os.system("rm " + path + "img*")

@@ -24,8 +24,9 @@
 
 	\setlength{\parindent}{2em}An event driven approach is used to simulate a gas of hard discs in two dimensions. The framework built is used to study statistical properties of the gas at and towards equilibrium. The numerical results are compared with well known results from classical statistical mechanics. Towards the end, the formation of a crater from a projectile impact on a bed of particles is studied with the gas system. 
 	
-	\begin{figure}
-		
+	\begin{figure}[h]
+		\centering
+		\includegraphics[width=0.7\textwidth]{../fig/crater_2}
 	\end{figure}
 	
 
@@ -37,35 +38,41 @@
 \setlength{\parskip}{1em}
 \newpage
 
-\section{Introduction and background}\label{sec:intro}
+\part{Introduction}
+\section{Background}\label{sec:intro}
 
 \input{./introduction}
 
 \section{Overview of code}\label{sec:overview}
 
 \input{./code_overview}
+\newpage
+\part{Results and discussion}
 
-\section{Results and discussion}
+In the following sections, I will present the results from the simulations in the problems. For a more detailed description of the problems consult the exercise sheet \cite{sheet}.
 
-In this section, I will present the results from the simulations in the problems. For a more detailed description of the problems consult the exercise sheet \cite{sheet}.
-
-\subsection{Speed distribution at equilibrium}\label{sec:eq}
+\section{Speed distribution at equilibrium}\label{sec:eq}
 
 \input{./problem1}
 
-\subsection{Mixture of two gases}\label{sec:mix1}
+\section{Mixture of two gases}\label{sec:mix1}
 
 \input{./problem2}
 
-\subsection{Mixing in the presence of energy dissipation}\label{sec:mix2}
+\section{Mixing in the presence of energy dissipation}\label{sec:mix2}
 
 \input{./problem3}
 
-\subsection{Crater formation from projectile impact}\label{sec:crater}
+\section{Crater formation from projectile impact}\label{sec:crater}
 
 \input{./problem4}
 
-\bibliographystyle{unsrt}
+\newpage
+%\part{Conclusion}
+\input{./conc}
+
+
+\bibliographystyle{alpha}
 \bibliography{references}
 
 \end{document}

@@ -3,19 +3,45 @@
 %\usepackage[left=2.00cm,right=2.00cm,top=2.00cm,bottom=2.00cm]{geometry}
 \usepackage{transparent}
 \usepackage{amsmath}                                 % AMS Math Package
-\usepackage[utf8]{inputenc}
 \usepackage{amsthm}                                  % Theorem Formatting
 \usepackage{amssymb}                                 % Math symbols such as \mathbb
 \usepackage{graphicx}                                % Allows for eps images
-\usepackage[dvips,a4paper,margin=1in,bottom=1in]{geometry}
+\usepackage[dvips,margin=1in,bottom=1in]{geometry}
 \usepackage{tensor}
-
-\usepackage{titlesec}
+\usepackage{tcolorbox}
+\usepackage[explicit,compact]{titlesec}
 \usepackage{csquotes}
+\usepackage{booktabs}
 
 \titlespacing\section{0pt}{12pt plus 4pt minus 2pt}{0pt plus 2pt minus 2pt}
 \titlespacing\subsection{0pt}{12pt plus 4pt minus 2pt}{0pt plus 2pt minus 2pt}
 \titlespacing\subsubsection{0pt}{12pt plus 4pt minus 2pt}{0pt plus 2pt minus 2pt}
+
+%\titleformat{\part}[hang]{\Huge\bfseries\sffamily}{}{0pt}{
+%\begin{tcolorbox}[width=3cm,height=1.5cm,colback=black!75!white,colframe=black!75!white,center title,fonttitle=\bfseries\normalsize,title=PART,text fill]
+%	\centering
+%	{\color{white}\thepart}
+%\end{tcolorbox}
+%}
+
+\titleformat{\part}[display]{\Huge\bfseries}{
+	\vspace{-1.2cm}
+	\begin{minipage}[t]{0.8\columnwidth}
+		#1
+	\end{minipage}
+	\hfill
+	\begin{minipage}[t]{0.2\columnwidth}
+		\begin{tcolorbox}[width=3cm,height=1.5cm,colback=black!75!white,colframe=black!75!white,center title,fonttitle=\bfseries\normalsize,title=PART,text fill,flush right]
+			\begin{center}
+				{\color{white}\thepart}
+			\end{center}
+		\end{tcolorbox}
+	\end{minipage}
+	\vspace{-2cm}
+}{0pt}{}
+
+\titlespacing{\part}{0pt}{0pt minus 2pt}{-\parskip}
+
 
 % Sets margins and page size
 
@@ -97,7 +123,6 @@
 \setlength{\parindent}{0pt}
 
 \usepackage{fancyhdr}
-\usepackage{titlesec}
 
 \usepackage{nameref}
 
@@ -113,9 +138,9 @@
 \lhead{\small \textsc{\rightmark}}
 \cfoot{\textemdash \, \thepage \, \textemdash}
 
-\titleformat*{\section}{\bfseries \Large}
-\titleformat*{\subsection}{\bfseries\large}
-\titleformat*{\subsubsection}{\bfseries \normalsize}
+%\titleformat*{\section}{\bfseries \Large #1 }
+%\titleformat*{\subsection}{\bfseries\large #1}
+%\titleformat*{\subsubsection}{\bfseries \normalsize #1 }
 
 \fancypagestyle{titlepage}{
 	\fancyhf{}
@@ -152,20 +177,20 @@
 \def\ese{\end{equation*}}
 
 \def\bt{\begin{thm}}
-\def\et{\end{thm}}
+	\def\et{\end{thm}}
 
 \def\bl{\begin{lemma}}
-\def\el{\end{lemma}}
+	\def\el{\end{lemma}}
 
 \def\bc{\begin{cor}}
-\def\ec{\end{cor}}
+	\def\ec{\end{cor}}
 
 \def\br{\begin{remark}}
-\def\er{\end{remark}}
+	\def\er{\end{remark}}
 
 \def\bal{\begin{align}}
-	\def\eal{\end{align}}
-	
+\def\eal{\end{align}}
+
 \def\bd{\begin{definition}}
 	\def\ed{\end{definition}}
 

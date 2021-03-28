@@ -1,10 +1,10 @@
-\subsubsection{Distributing the discs randomly in $[0,1]\times[0,0.5]$}
+\subsection{Distributing the discs randomly in $[0,1]\times[0,0.5]$}
 
 To distribute the particles randomly in the box defined by 
 $$
 \{(x,y)\in \RR^2 : 0 < x < 1, 0 < y < 0.5\}
 $$ 
-I use the following scheme. 
+I use the following method. 
 
 To choose a suitable radius to have the particles fill up the available space with a packing fraction of $\rho \approx 1/2$ I solve for $r$ in 
 $$
@@ -21,21 +21,21 @@ To avoid having overlapping particles, I do the following
 	Choose number of particles $N$\;
 	Find $r$ corresponding to $N$ from \eqref{eq:r}\;
 	$\mathbf{x} \gets [(0,0),\dots,(0,0)]$\;
-	Sample $x_i \sim \mathcal{U}_{[r,1-r]}$ and $y_i \sim \mathcal{U}_{[r,0.5]}$\;
+	Sample $x_i \sim \mathcal{U}_{[r,1-2r)}$ and $y_i \sim \mathcal{U}_{[r,0.5)}$\;
 	$\mathbf{x}_1 \gets (x_i,y_i)$\;
 	\For{$i = 2\dots N$ }{
-		Sample $x_i \sim \mathcal{U}_{[r,1-r]}$ and $y_i \sim \mathcal{U}_{[r,0.5]}$\;
+		Sample $x_i \sim \mathcal{U}_{[r,1-2r)}$ and $y_i \sim \mathcal{U}_{[r,0.5)}$\;
 		$\mathbf{x}_i \gets (x_i,y_i)$\;
 	\While{Particle $i$ does not overlap with particle $1,\dots,i-1$}{
-		Sample $x_i \sim \mathcal{U}_{[r,1-r]}$ and $y_i \sim \mathcal{U}_{[r,0.5]}$\;
+		Sample $x_i \sim \mathcal{U}_{[r,1-2r)}$ and $y_i \sim \mathcal{U}_{[r,0.5)}$\;
 		$\mathbf{x}_i \gets (x_i,y_i)$\;
 	}}
 	\caption{Non-overlapping random placement of discs in rectangular region.}
 \end{algorithm}  
 
-\subsubsection{Illustration of crater formation}
+\subsection{Illustration of crater formation}
 
-The plots in figures \ref{fig:crater_1} and \ref{fig:crater_2} shows the crater formed when the mass of the projectile is $5$ and $25$ times the mass of the particles in the bed, respectively. The darker the colour of the particles, the more collisions they have been involved in. Define the \textit{size of the crater}, $\mathcal{S}$, as the number of affected particles by the impact. That is, the number of particles moved during the impact. In the illustrations in figures \ref{fig:crater_1} and \ref{fig:crater_2} the size is the number of non-yellow particles. 
+The plots in figures \ref{fig:crater_1} and \ref{fig:crater_2} shows the crater formed when the mass of the projectile is $5$ and $25$ times the mass of the particles in the bed, respectively. A video of the latter case can be seen \href{https://folk.ntnu.no/sondrdl/eventdrivengas/crater.mp4}{here}. The darker the colour of the particles, the more collisions they have been involved in. We define the \textit{size of the crater}, $\mathcal{S}$, as the number of affected particles by the impact. That is, the number of particles moved during the impact. In the illustrations in figures \ref{fig:crater_1} and \ref{fig:crater_2} the size is the number of non-yellow particles. 
 
 \begin{figure}
 	\centering
@@ -51,7 +51,7 @@ The plots in figures \ref{fig:crater_1} and \ref{fig:crater_2} shows the crater 
 		\label{fig:crater_2}
 \end{minipage}
 \end{figure}
-\subsubsection{Dependence on projectile mass}
+\subsection{Dependence on projectile mass}
 
 By simulating crater formation with projectile masses running from $1$ to $25$ times the mass of the remaining particles, the size of the crater is as shown in figure \ref{fig:mass_size}. The size of the crater $\mathcal{S}$ is simply the number of particles involved in the crater formation. The plot clearly shows that a larger projectile mass gives rise to a larger crater, as one intuitively would expect. 
 
@@ -62,7 +62,9 @@ By simulating crater formation with projectile masses running from $1$ to $25$ t
 	\label{fig:mass_size}
 \end{figure}
 
-Interestingly, the size seems to scale approximately linearly with the projectile mass. A reasonable suspicion to make is that the size of the crater depends on the energy transferred to it. If this is the case, it would explain the linear dependence on the mass. Following this assumption, one should expect the size to scale quadratically with the initial velocity. However, when trying to demonstrate this I found no such relationship. 
+Interestingly, the size seems to scale approximately linearly with the projectile mass. A reasonable suspicion to make is that the size of the crater depends on the energy transferred to it. If this is the case, it would explain the linear dependence on the mass. Following this assumption, one should expect the size to scale quadratically with the initial velocity. However, when trying to demonstrate this I found no such relationship. In fact the crater size seems to be approximately invariant under changes in the projectile velocity. This may be explained through the fact that scaling the velocity amounts to scaling the time by the reciprocal factor due to the simple equations of motion only involving linear dependence on the velocity. This is also true for the collision times, since $\Delta t \sim \frac{1}{|\Delta v|}$ cf. \cite{sheet}. When using as stop criterion that $90 \%$ of the energy is dissipated, the dependence on the velocity is ultimately insignificant. This rules out the hypothesis that the crater size is proportional to the energy transferred to the bed.
+
+
 %\subsubsection{Scanning over the projectile velocity}
 %
 %As alluded to in the previous section, $\mathcal{S} \sim v^2$, as shown in \ref{fig:vel_size}.

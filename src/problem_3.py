@@ -84,8 +84,8 @@ if __name__ == "__main__":
     label = int(sys.argv[1])
 
     E1 = problem_3(v_0 = 2,N = 4000, count = 20, seed = label, dt = 0.001, xi = 1)
-    E2 = problem_3(v_0 = 2,N = 4000, count = 20, seed = label, dt = 0.001, xi = 0.8)
-    E3 = problem_3(v_0 = 2,N = 4000, count = 20, seed = label, dt = 0.001, xi = 0.9)
+    E2 = problem_3(v_0 = 2,N = 4000, count = 20, seed = label, dt = 0.001, xi = 0.9)
+    E3 = problem_3(v_0 = 2,N = 4000, count = 20, seed = label, dt = 0.001, xi = 0.8)
 
     np.save(f"../data/prob3/E1_{label}.npy",E1)
     np.save(f"../data/prob3/E2_{label}.npy",E2)
