@@ -22,15 +22,15 @@ We initialise a system of $50\,000$ particles with velocities $\mathbf{v} = [v_0
 %	\label{fig:dist_2}
 %\end{figure}
 
-To have a more quantitative measure of how good the fit is, divide the real line into $k$ intervals and consider the normalized $\ell^1$-norm of the difference at each interval 
+To have a more quantitative measure of how good the fit is, divide the real line into $k$ intervals and consider the normalized $\ell^1$ and $\ell^2$-norm of the difference at each interval 
 \begin{equation}\label{eq:err}
-	\texttt{err} = \frac{1}{2} \sum_{j=1}^{k} \rvert d_j - p_j\lvert,
+	\texttt{err}_{1}= \frac{1}{2} \sum_{j=1}^{k} \rvert d_j - p_j\lvert \quad 	\texttt{err}_{2}= \frac{1}{2} \sqrt{\sum_{j=1}^{k} \rvert d_j - p_j\lvert^2},
 \end{equation}
 where $d_j$ denotes the density of samples in interval $I_j$ and 
 \[
 	p_j = \int_{I_j} p(v) \, \text{d}v
 \]
-is the probability that an observation falls into interval $I_j$\footnote{There are many approaches to constructing such a measure. This one has the advantage that it ranges from $0$ to $1$, since the usual $\ell^1$ norm of the differences is in the worst case $2$ if the support of the theoretical and measured distribution are disjoint. A disadvantage is that it does not measure "closeness" in the usual \textit{least-square} sense, as the $\ell^2$ norm does.}. For the distribution shown in figure \ref{fig:dist_1} $\texttt{err} \approx  0.0078527$. This indicates a good fit with the known distribution.
+is the probability that an observation falls into interval $I_j$\footnote{There are many approaches to constructing such a measure. These have the advantage that it ranges from $0$ to $1$, since the usual $\ell^1$ and $\ell^2$ norm of the differences is in the worst case $2$ if the support of the theoretical and measured distribution are disjoint. A disadvantage of $\texttt{err}_1$ is that it does not measure "closeness" in the usual \textit{least-square} sense, as the $\ell^2$ norm does.}. For the distribution shown in figure \ref{fig:dist_1} $\texttt{err}_1 \approx  0.007455$ and $\texttt{err}_2 \approx 0.000892$. This indicates a good fit with the known distribution.
 
 %This test is constructed as follows:
 %

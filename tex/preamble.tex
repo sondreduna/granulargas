@@ -3,7 +3,6 @@
 %\usepackage[left=2.00cm,right=2.00cm,top=2.00cm,bottom=2.00cm]{geometry}
 \usepackage{transparent}
 \usepackage{amsmath}                                 % AMS Math Package
-\usepackage{amsthm}                                  % Theorem Formatting
 \usepackage{amssymb}                                 % Math symbols such as \mathbb
 \usepackage{graphicx}                                % Allows for eps images
 \usepackage[dvips,margin=1in,bottom=1in]{geometry}
@@ -11,6 +10,8 @@
 \usepackage{tcolorbox}
 \usepackage[explicit,compact]{titlesec}
 \usepackage{csquotes}
+\usepackage{amsthm}
+\usepackage{mathtools}
 \usepackage{booktabs}
 
 \titlespacing\section{0pt}{12pt plus 4pt minus 2pt}{0pt plus 2pt minus 2pt}
@@ -38,7 +39,7 @@
 		\end{tcolorbox}
 	\end{minipage}
 	\vspace{-2cm}
-}{0pt}{}
+	}{0pt}{}
 
 \titlespacing{\part}{0pt}{0pt minus 2pt}{-\parskip}
 
@@ -59,7 +60,7 @@
 \definecolor{codegreen}{rgb}{0,0.6,0}
 \definecolor{codegray}{rgb}{0.5,0.5,0.5}
 \definecolor{codepurple}{rgb}{0.58,0,0.82}
-\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+\definecolor{backcolour}{rgb}{0.97,0.97,0.97}
 
 \lstdefinestyle{mystyle}{
 	language=Python,
@@ -177,20 +178,20 @@
 \def\ese{\end{equation*}}
 
 \def\bt{\begin{thm}}
-	\def\et{\end{thm}}
+\def\et{\end{thm}}
 
 \def\bl{\begin{lemma}}
-	\def\el{\end{lemma}}
+\def\el{\end{lemma}}
 
 \def\bc{\begin{cor}}
-	\def\ec{\end{cor}}
+\def\ec{\end{cor}}
 
 \def\br{\begin{remark}}
-	\def\er{\end{remark}}
+\def\er{\end{remark}}
 
 \def\bal{\begin{align}}
-\def\eal{\end{align}}
-
+	\def\eal{\end{align}}
+	
 \def\bd{\begin{definition}}
 	\def\ed{\end{definition}}
 

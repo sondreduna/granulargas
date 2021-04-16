@@ -27,9 +27,9 @@ CPU times: user 34.1 ms, sys: 87 $\mu$s, total: 34.2 ms
 Wall time: 33.2 ms
 }
 
-The issue of finding the earliest event for each timestep is solved using a priority queue from the library \texttt{heapq} in \texttt{python}. This data structure allows for sorting any objects as long as they can be compared by the "less than"-operator. I have therefore chosen to make a class called \texttt{Event} to store the necessary information about each collision, and use these in the queue.  
+The issue of finding the earliest event for each time step is solved using a priority queue from the library \texttt{heapq} in \texttt{python}. This data structure allows for sorting any objects as long as they can be compared by the "less than"-operator. I have therefore chosen to make a class called \texttt{Event} to store the necessary information about each collision, and use these in the queue.  
 
-The code itself is well documented and should be easy to undestand on its own. However, I would like to point out some solutions that I found to work particularly well. The part of the code that undoubtedly is the most computationally heavy is the one devoted to calculating if and when the particles will collide with all others. The naive approach would be to iterate over each particle and do the calculation for each of them separately. In \texttt{python}, these kind of nested loops will often become impractically slow. I found considerable improvements through vectorising this calculation. 
+The code itself is well documented and should be easy to understand on its own. However, I would like to point out some solutions that I found to work particularly well. The part of the code that undoubtedly is the most computationally heavy is the one devoted to calculating if and when the particles will collide with all others. The naive approach would be to iterate over each particle and do the calculation for each of them separately. In \texttt{python}, these kind of nested loops will often become impractically slow. I found considerable improvements through vectorising this calculation. 
 
 By essentially replacing the piece of calculation in listing \ref{lst:loop} by that in \ref{lst:vect} I was able to reduce one of the loops over all of the particles.
 
@@ -90,7 +90,7 @@ Putting the central pieces\footnote{The \textit{central} piece here is referring
 }
 
 
-An explaination is probably appropriate for the somewhat cryptic \texttt{einsum}-function from \texttt{Numpy}. This function allows for writing sum operations on arrays using Einstein's summation convention. Once I have gotten used to the notation, I find it very readable. In addition it is very fast; the listed code in \ref{lst:einsum} below produces the following results: 
+An explanation is probably appropriate for the somewhat cryptic \texttt{einsum}-function from \texttt{Numpy}. This function allows for writing sum operations on arrays using Einstein's summation convention. Once I have gotten used to the notation, I find it very readable. In addition it is very fast; the listed code in \ref{lst:einsum} below produces the following results: 
 
 \texttt{\small
 55.2 $\mu$s $\pm$ 364 ns per loop (mean $\pm$ std. dev. of 7 runs, 10000 loops each)
