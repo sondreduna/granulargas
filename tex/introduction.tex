@@ -1,9 +1,9 @@
-The central algorithm for event-driven simulations is the following \cite{event_sim}:
+The central algorithm for event-driven simulations is the following \cite{event_sim} \cite{sheet}:
 
 \begin{algorithm}[H]
 	Set velocities and positions of all particles in the gas\;
 	Choose a stop criterion\;
-	\For{each particle in gas}{
+	\For{\textup{\textbf{each}} particle in gas}{
 		Calculate if and when the particle will collide with all the other particles and the walls\;
 		Store all the collision times\;
 	}
@@ -12,7 +12,8 @@ The central algorithm for event-driven simulations is the following \cite{event_
 		
 		\eIf{collision is valid}{
 			Move all particles in straight lines until the earliset collision\;
-			\For{each particle involved in collision}{
+			\For{\textup{\textbf{each}} particle involved in collision}{
+				Change its velocity according to the equations given in section 2 in \cite{sheet} \;
 				Calculate if and when the particle will collide with all the other particles and the walls\;
 				Store all the collision times\;
 			} 
@@ -23,4 +24,8 @@ The central algorithm for event-driven simulations is the following \cite{event_
 	\caption{Event driven simulation of a gas.}
 \end{algorithm}
 
-In the above algorithm, a collision is marked \textit{valid} if the particle(s) involved in the collision has \textit{not} collided since the time the collision time was stored. 
+In the above algorithm, a collision is marked \textit{valid} if the particle(s) involved in the collision has \textit{not} collided since the time the collision time was stored. Equivalently --- and more convenient when dealing with computations that \textit{might} make the time between collisions \textit{very} small --- one can keep track of the number of collisions a particle has experienced and use this number to check whether the collision is valid. 
+
+The stop criterion mentioned in the while-loop will depend on the situation we are considering. To this end I have created a utility-class called \texttt{StopCriterion} which is an abstract class used for this purpose, with multiple children for stopping after reaching a specific number of collision, after reaching a specific time or after a certain amount of the initial energy has dissipated in collisions. This framework provides the option to easily extend to more such criterion, although requiring adding some modifications to the main simulation method.
+
+\newpage

@@ -399,7 +399,26 @@ class Gas:
             self.next_collision(i,0)
             
     def simulate(self, dt = 0.1, stopper = "time", stop_val = 10, ret_vels = True):
-    
+        """
+        Simulates the system up to a time T. Default up to time 10 with a 
+        time step of dt = 0.1.
+        Provides the option to use different stop criterion as well. These are
+        described in the report, and further info about them can be found in the 
+        utils.py file
+
+        Parameters
+        ----------
+        dt : float
+            time step
+        stopper : string
+            name of stop criterion
+        stop_val : int
+            value to feed into the stop criterion
+        ret_vels : bool
+            True  = return velocities from the simulation
+            False = do not return them. 
+     
+        """
         
         if stopper == "time":
             self.stop_criterion = StopAtTime(stop_val)
@@ -507,6 +526,11 @@ class Gas:
             return self.particles[2:,:]
 
     def simulate_saveE(self, dt = 0.1, stopper = "time", stop_val = 10, ret_vels = True):
+
+        """
+        Simulates the system up to a time T, and saves the energy at each time step.
+     
+        """
         
         if stopper == "time":
             self.stop_criterion = StopAtTime(stop_val)

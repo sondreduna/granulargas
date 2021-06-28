@@ -1,15 +1,15 @@
 In this section I briefly present how the algorithm is implemented and which considerations are put into the choices of data-structures. The code is written in \texttt{python}.
 
 
-The main machinery of the code is collected in a class called \texttt{Gas} in \texttt{events.py}, which in essence is a collection of $N$ \texttt{particles} and various methods to manipulate the coordinates of each particle to simulate the gas' time evolution according to the algorithm in section \ref{sec:intro}
-The easiest way to simulate the system is to initialise the gas by calling the constructor with the argument $N$ giving the number of particles, setting the velocities by calling \texttt{gas.set\textunderscore velocities(v)} and subsequently \texttt{gas.simulate()}.
-The particles are represented by their coordinates in the extended configuration space by their coordinates in the extended configuration space, that is their position and velocity.
+The main machinery of the code is collected in a class called \texttt{Gas} in \texttt{events.py}, which in essence is a collection of $N$ \texttt{particles} and various methods to manipulate the coordinates of each particle to simulate the gas' time evolution according to the algorithm in section \ref{sec:intro} and the more detailed equations for handling the changing velocities upon collisions given in \cite{sheet}.
+The easiest way to simulate the system is to initialise the gas by calling the constructor with the argument $N$ giving the number of particles, setting the velocities by calling \texttt{gas.set\textunderscore velocities(v)}, with \texttt{v} being an $2 \times N $-dimensional array, and subsequently \texttt{gas.simulate()}. The radius of the particles can also be set in the constructor as an optional argument.
+The particles are represented by their coordinates in the extended configuration space, that is their position and velocity. This is the member variable \texttt{particles} in the \texttt{Gas} class.
 Although the main algorithm presented in the introduction \ref{sec:intro} invites to a fully object-oriented approach, I have chosen to restrain myself somewhat in that respect. 
-For instance, I have chosen not to create an object representing a particle.
+For instance, I have chosen not to create an object representing each particle.
 The most prominent caveat preventing me from doing this is that it might affect the speed of the calculations.
-By choosing not to create separate object representing each particle, I found it very simple to move the particles at each time step and also accessing them by ordinary slicing and indexing of arrays. 
+By choosing not to create a separate object representing each particle, I found it very simple to move the particles at each time step and also accessing them by ordinary slicing and indexing of arrays. 
 Although it is possible to overload operators such that an array of self defined object can be added \textit{like} \texttt{numpy}-arrays, I found this to be impractically slow. 
-A quick test of adding the self-made particles compared to simply adding $4\times N$ arrays establishes this observation quite firmly. The listings below shows the time spent on adding two arrays of $50\,000$ particles with each of the mentioned methods.
+A quick test of adding the self-made particles compared to simply adding $4\times N$ dimensional arrays establishes this observation quite firmly. The listings below shows the time spent on adding two arrays of $50\,000$ particles with each of the mentioned methods.
 
 \begin{lstlisting}
 %time particles_array_1 += particles_array_2
@@ -73,7 +73,7 @@ for j in range(np.size(T)):
 	heapq.heappush(self.events,Event(T[j] + t ,i,J[j],"pair",self.count[i], self.count[J[j]]))
 \end{lstlisting}
 
-Putting the central pieces\footnote{The \textit{central} piece here is referring to line $1$ through $6$ in listing \ref{lst:loop} and line $1$ through $14$ in listing \ref{lst:vect}.} of each of these two calculations into two functions \texttt{loop()} and \texttt{vect()} and comparing the time spent shows that the latter is approximately $100$ times faster than the former, when doing a test on $50\,000$ particles. It should be noted however that the latter also requires a separate loop for pushing the new events into the queue, whereas the former does not. The speed-up is probably somewhat smaller than shown here.
+Putting the central pieces\footnote{The \textit{central} piece here is referring to line $1$ through $6$ in listing \ref{lst:loop} and line $1$ through $14$ in listing \ref{lst:vect}.} of each of these two calculations into two functions \texttt{loop()} and \texttt{vect()} and comparing the time spent shows that the latter is approximately $100$ times faster than the former, when doing a test on $50\,000$ particles. It should be noted however that the latter also requires a separate loop for pushing the new events into the queue, whereas the former does not. The speed-up is probably somewhat smaller than shown here, but nonetheless it is a considerable improvement.
 
 \begin{lstlisting}
 %timeit loop()
@@ -91,18 +91,17 @@ Putting the central pieces\footnote{The \textit{central} piece here is referring
 
 
 An explanation is probably appropriate for the somewhat cryptic \texttt{einsum}-function from \texttt{Numpy}. This function allows for writing sum operations on arrays using Einstein's summation convention. Once I have gotten used to the notation, I find it very readable. In addition it is very fast; the listed code in \ref{lst:einsum} below produces the following results: 
-
-\texttt{\small
-55.2 $\mu$s $\pm$ 364 ns per loop (mean $\pm$ std. dev. of 7 runs, 10000 loops each)
-}
-
-\texttt{\small 
-89.6 $\mu$s $\pm$ 4.78 $\mu$s per loop (mean $\pm$ std. dev. of 7 runs, 100000 loops each)
-}
-\begin{lstlisting}[language=Python,label={lst:einsum}]
+\begin{lstlisting}[language=Python,label={lst:einsum},caption={Timing einsum.}]
 u = np.random.random((2,50000))
 v = np.random.random((2,50000))
 
 %timeit np.einsum('ij,ij->j',u,v)
 %timeit np.sum( u*v, axis = 0)
 \end{lstlisting}
+\texttt{\small
+	55.2 $\mu$s $\pm$ 364 ns per loop (mean $\pm$ std. dev. of 7 runs, 10000 loops each)
+}
+
+\texttt{\small 
+	89.6 $\mu$s $\pm$ 4.78 $\mu$s per loop (mean $\pm$ std. dev. of 7 runs, 100000 loops each)
+}

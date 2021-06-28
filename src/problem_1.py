@@ -172,4 +172,4 @@ import sys
 if __name__ == "__main__":
 
     label = sys.argv[1]
-    problem_1_simple(v_0 = 1, N = 4000, count = 50, i = label)
+    problem_1_simple(v_0 = 1, N = 1000, count = 50, i = label)

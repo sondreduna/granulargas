@@ -4,7 +4,7 @@ The first test is devoted to investigating the distribution of the velocities of
 \end{equation}
 where $k_B$ is Boltzmann's constant, $T$ the absolute temperature, and $m$ the mass of the particles. It is evident that the particles will have to have the same mass for comparing with the known distribution in equation \ref{eq:maxwell}. The case of dissimilar masses is considered in section \ref{sec:mix1} and \ref{sec:mix2}.
 
-We initialise a system of $50\,000$ particles with velocities $\mathbf{v} = [v_0 \cos{\theta} , v_0 \sin{\theta}]$ with $\theta \sim \U[0,2\pi]$. The initial distribution of the velocities is therefore $\delta (v - v_0)$. After simulating the system until equilibrium is reached, i.e. the the average number of particle collision is $\gg 1$, the distribution is as shown in figure \ref{fig:dist_1}. For this simulation, the stop criterion used was that the average number of collisions surpassed $50$. To get a larger number of independent samples, I have used the speeds at different times in this simulation sampled such that all particles have collided a few times between each sample. Judging from the plot, the samples seem sufficiently independent as the distribution very well resembles the Maxwell-Boltzmann distribution.
+We initialise a system of $32\,000$ particles\footnote{That is, $8$ ensembles of $4000$ particles run in parallel.} with velocities $\mathbf{v} = [v_0 \cos{\theta} , v_0 \sin{\theta}]$ with $\theta \sim \U[0,2\pi]$. The initial distribution of the velocities is therefore $\delta (v - v_0)$. After simulating the system until equilibrium is reached, i.e. the the average number of particle collision is $\gg 1$, the distribution is as shown in figure \ref{fig:dist_1}. For this simulation, the stop criterion used was that the average number of collisions surpassed $50$. To get a larger number of independent samples, I have used the speeds at different times in this simulation sampled such that all particles have collided between each sample. Specifically, here I have used every 10$^\text{th}$ sample over the course of $250$ time steps out of a total of $400$ time samples. This should correspond to it being roughly $1.3$ collisions per particle on average between each sample. Judging from the plot, the samples seem sufficiently independent as the distribution very well resembles the Maxwell-Boltzmann distribution.
 
 \begin{figure}[htb]
 	\centering
@@ -24,13 +24,13 @@ We initialise a system of $50\,000$ particles with velocities $\mathbf{v} = [v_0
 
 To have a more quantitative measure of how good the fit is, divide the real line into $k$ intervals and consider the normalized $\ell^1$ and $\ell^2$-norm of the difference at each interval 
 \begin{equation}\label{eq:err}
-	\texttt{err}_{1}= \frac{1}{2} \sum_{j=1}^{k} \rvert d_j - p_j\lvert \quad 	\texttt{err}_{2}= \frac{1}{2} \sqrt{\sum_{j=1}^{k} \rvert d_j - p_j\lvert^2},
+	\texttt{err}_{1}= \frac{1}{2} \sum_{j=1}^{k} \rvert d_j - p_j\lvert \quad 	\texttt{err}_{2}=  \sqrt{ \frac{1}{2} \sum_{j=1}^{k} \rvert d_j - p_j\lvert^2},
 \end{equation}
 where $d_j$ denotes the density of samples in interval $I_j$ and 
 \[
-	p_j = \int_{I_j} p(v) \, \text{d}v
+	p_j \coloneqq \int_{I_j} p(v) \, \text{d}v
 \]
-is the probability that an observation falls into interval $I_j$\footnote{There are many approaches to constructing such a measure. These have the advantage that it ranges from $0$ to $1$, since the usual $\ell^1$ and $\ell^2$ norm of the differences is in the worst case $2$ if the support of the theoretical and measured distribution are disjoint. A disadvantage of $\texttt{err}_1$ is that it does not measure "closeness" in the usual \textit{least-square} sense, as the $\ell^2$ norm does.}. For the distribution shown in figure \ref{fig:dist_1} $\texttt{err}_1 \approx  0.007455$ and $\texttt{err}_2 \approx 0.000892$. This indicates a good fit with the known distribution.
+is the probability that an observation falls into interval $I_j$\footnote{There are many approaches to constructing such a measure. These have the advantage that they range from $0$ to $1$, since the usual $\ell^1$ and $\ell^2$ norm of the differences is in the worst case $2$ and $\sqrt{2}$ respectively if the support of the theoretical and measured distribution are disjoint. A disadvantage of $\texttt{err}_1$ is that it does not measure "closeness" in the usual \textit{least-square} sense, as the $\ell^2$ norm does.}. For the distribution shown in figure \ref{fig:dist_1} $\texttt{err}_1 \approx  0.007455$ and $\texttt{err}_2 \approx 0.001262$. This indicates a good fit with the known distribution.
 
 %This test is constructed as follows:
 %
